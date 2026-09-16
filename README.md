@@ -1,415 +1,243 @@
-# Plataforma de Gestión de Carreras Académicas
+# Backend — Plataforma de Gestión de Carreras Académicas
 
-Plan de implementación de una plataforma dockerizada (**Node.js + Express**) para que una institución educativa administre sus **títulos/carreras**, la **currícula** de cada una organizada por años, el control de versiones de esa currícula mediante **resoluciones**, las **correlatividades** entre materias, el seguimiento académico de los alumnos y la emisión de **certificados** (parciales y de título completo).
+Este repositorio contiene el backend de una plataforma pensada para que una institución educativa pueda administrar sus carreras de forma ordenada, versionando los planes de estudio sin perder el historial académico de nadie.
 
-## Índice
-
-1. [Contexto y objetivo](#1-contexto-y-objetivo)
-2. [Glosario de dominio](#2-glosario-de-dominio)
-3. [Reglas de negocio clave](#3-reglas-de-negocio-clave)
-4. [Modelo de datos](#4-modelo-de-datos)
-5. [Diccionario de tablas](#5-diccionario-de-tablas)
-6. [Arquitectura técnica](#6-arquitectura-técnica)
-7. [Estructura del proyecto](#7-estructura-del-proyecto)
-8. [API — Endpoints](#8-api--endpoints)
-9. [Flujos principales](#9-flujos-principales)
-10. [Docker](#10-docker)
-11. [Variables de entorno](#11-variables-de-entorno)
-12. [Plan de implementación por fases](#12-plan-de-implementación-por-fases)
-13. [Testing y calidad](#13-testing-y-calidad)
-14. [Seguridad](#14-seguridad)
-15. [Mejoras futuras](#15-mejoras-futuras)
+La idea central es simple pero poderosa: cuando una institución cambia el plan de estudios de una carrera, los alumnos que ya están cursando **no** pueden quedar atrapados en un limbo administrativo. Acá eso se resuelve con **resoluciones**: cada versión de la currícula es una entidad propia, con su propio set de años y materias. Cuando llega una nueva versión, la anterior se cierra y queda como registro histórico. Los alumnos que ya estaban inscriptos siguen bajo su plan original; los nuevos ingresan con el plan nuevo.
 
 ---
 
-## 1. Contexto y objetivo
+## Estado actual del proyecto
 
-La institución dicta varios **títulos** (carreras). Cada título tiene una **currícula** (plan de estudios) dividida en **años**, y cada año contiene **materias**. Un alumno aprueba el título cuando aprueba todas las materias de la currícula vigente al momento de su inscripción, respetando las **correlatividades** configuradas entre materias.
+El proyecto está en construcción activa. Este primer push incluye las **Fases 0, 1 y parte de la 2** del plan de implementación.
 
-Cuando la institución modifica el plan de estudios de un título, no se pisa el plan anterior: se **cierra la resolución vigente** y se **abre una nueva resolución** con las materias actualizadas. Así conviven en el sistema alumnos que cursan bajo distintas resoluciones del mismo título.
+| Fase | Descripción | Estado |
+|---|---|---|
+| 0 | Setup inicial (Docker, Express, DB) | Completada |
+| 1 | Modelo de datos (Prisma) | Completada |
+| 2 | Títulos y Resoluciones | En curso |
+| 3 | Materias y Correlatividades | Pendiente |
+| 4 | Alumnos e Inscripciones | Pendiente |
+| 5 | Cursada e Historia Académica | Pendiente |
+| 6 | Certificados | Pendiente |
+| 7 | Autenticación y Roles | Pendiente |
+| 8 | Testing y Documentación | Pendiente |
+| 9 | Despliegue | Pendiente |
 
-El sistema debe permitir:
+---
 
-- Administrar títulos, años, materias y correlativas.
-- Versionar la currícula mediante resoluciones (abrir/cerrar).
-- Inscribir alumnos y asociarlos a la resolución vigente.
-- Registrar el avance académico (cursada, regularidad, aprobación de finales).
-- Emitir certificados parciales (por año) y el certificado de título completo.
+## Stack técnico
 
-## 2. Glosario de dominio
-
-| Término | Significado |
+| Componente | Elección |
 |---|---|
-| **Título** | Carrera que otorga la institución (ej: "Técnico Superior en Enfermería"). |
-| **Resolución** | Código que identifica una versión de la currícula de un título (ej: `RES-045/2023`). Tiene un año de creación y un estado (vigente/cerrada). |
-| **Currícula / Plan de estudios** | Conjunto de años y materias que un alumno debe aprobar bajo una resolución determinada. |
-| **Año curricular** | Nivel dentro de la carrera (1º, 2º, 3º año, etc.), perteneciente a una resolución específica. |
-| **Materia** | Unidad curricular a cursar y aprobar, perteneciente a un año curricular. |
-| **Correlativa** | Relación entre materias: para cursar o rendir una materia, otra debe estar en determinado estado (regular/aprobada). |
-| **Cursada** | Registro del recorrido de un alumno en una materia (en curso, regular, aprobada, libre, desaprobada). |
-| **Inscripción** | Vínculo entre un alumno, un título y la resolución bajo la cual cursa. |
-| **Certificado parcial** | Constancia de materias/año aprobadas. |
-| **Certificado de título completo** | Constancia de que el alumno aprobó el 100% de la currícula de su resolución. |
-
-## 3. Reglas de negocio clave
-
-1. **Un título siempre tiene al menos una resolución vigente** con su currícula (años + materias) para poder inscribir alumnos.
-2. **Al modificar la currícula** de un título:
-   - Se cierra la resolución actual (`estado = cerrada`, `fecha_fin_vigencia = hoy`).
-   - Se crea una nueva resolución (`estado = vigente`) con su propio código (número + año de creación) y sus propios años/materias.
-   - Las resoluciones cerradas **no se editan ni se borran** (quedan como histórico).
-3. **Cada alumno se inscribe bajo la resolución vigente al momento de inscribirse.** Su plan de aprobación queda "congelado" en esa resolución, aunque después se abran nuevas resoluciones para el mismo título (se puede prever un mecanismo de equivalencias para pasar a la resolución nueva, ver [mejoras futuras](#15-mejoras-futuras)).
-4. **Correlatividades:** cada materia puede requerir que otra(s) materia(s) estén en un estado mínimo:
-   - `PARA_CURSAR`: la materia requerida debe estar como mínimo **regular**.
-   - `PARA_RENDIR_FINAL`: la materia requerida debe estar **aprobada**.
-   - El sistema valida estas condiciones antes de permitir registrar una cursada o una aprobación.
-5. **Estados posibles de una cursada:** `EN_CURSO`, `REGULAR` (aprobó la cursada, adeuda final), `APROBADA` (aprobó cursada y final, o promocionó), `LIBRE`, `DESAPROBADA`.
-6. **Certificado de título completo:** solo se emite si el alumno tiene en estado `APROBADA` el 100% de las materias de la resolución bajo la que está inscripto.
-7. **Certificado parcial (analítico por año):** se emite si el alumno tiene aprobadas todas las materias de un año curricular determinado.
-
-## 4. Modelo de datos
-
-```mermaid
-erDiagram
-    TITULO ||--o{ RESOLUCION : "tiene versiones"
-    RESOLUCION ||--o{ ANIO_CURRICULAR : "contiene"
-    ANIO_CURRICULAR ||--o{ MATERIA : "incluye"
-    MATERIA ||--o{ CORRELATIVIDAD : "requiere"
-    MATERIA ||--o{ CORRELATIVIDAD : "es requerida en"
-    TITULO ||--o{ INSCRIPCION : "recibe"
-    ALUMNO ||--o{ INSCRIPCION : "se inscribe"
-    RESOLUCION ||--o{ INSCRIPCION : "rige"
-    ALUMNO ||--o{ CURSADA_MATERIA : "cursa"
-    MATERIA ||--o{ CURSADA_MATERIA : "es cursada en"
-    ALUMNO ||--o{ CERTIFICADO : "solicita"
-    TITULO ||--o{ CERTIFICADO : "certifica"
-    RESOLUCION ||--o{ CERTIFICADO : "ampara"
-```
-
-**Notas del modelo:**
-- `CORRELATIVIDAD` es una tabla que referencia dos veces a `MATERIA` (`materia_id` y `materia_requerida_id`), representando el requisito de una sobre otra.
-- `ANIO_CURRICULAR` y `MATERIA` cuelgan de `RESOLUCION`, no de `TITULO` directamente, para que cada versión de currícula tenga su propio set de años/materias sin afectar a resoluciones anteriores.
-
-## 5. Diccionario de tablas
-
-### `titulos`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| nombre | string | Nombre del título |
-| nivel | string | Terciario / Universitario / etc. |
-| duracion_anios | int | Duración nominal en años |
-| estado | enum | `ACTIVO` / `DE_BAJA` |
-
-### `resoluciones`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| titulo_id | FK → titulos | Título al que pertenece |
-| numero | string | Número de resolución (ej: "045") |
-| anio_creacion | int | Año en que se dictó la resolución |
-| codigo | string | Concatenación mostrable (ej: "RES-045/2023") |
-| fecha_inicio_vigencia | date | Fecha desde la que rige |
-| fecha_fin_vigencia | date/null | Fecha de cierre (null si vigente) |
-| estado | enum | `VIGENTE` / `CERRADA` |
-| observaciones | text | Motivo del cambio, notas |
-
-### `anios_curriculares`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| resolucion_id | FK → resoluciones | Resolución a la que pertenece |
-| numero_anio | int | 1, 2, 3... |
-| nombre | string | Ej: "Primer año" |
-
-### `materias`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| anio_curricular_id | FK → anios_curriculares | Año al que pertenece |
-| nombre | string | Nombre de la materia |
-| codigo | string | Código interno |
-| carga_horaria | int | Horas cátedra |
-| tipo_cursada | enum | `ANUAL` / `CUATRIMESTRAL_1` / `CUATRIMESTRAL_2` |
-
-### `correlatividades`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| materia_id | FK → materias | Materia que tiene el requisito |
-| materia_requerida_id | FK → materias | Materia exigida como condición |
-| tipo | enum | `PARA_CURSAR` / `PARA_RENDIR_FINAL` |
-
-### `alumnos`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| dni | string | Documento |
-| nombre / apellido | string | Datos personales |
-| email | string | Contacto / login |
-| fecha_nacimiento | date | — |
-
-### `inscripciones`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| alumno_id | FK → alumnos | Alumno |
-| titulo_id | FK → titulos | Título |
-| resolucion_id | FK → resoluciones | Resolución bajo la que cursa |
-| fecha_inscripcion | date | — |
-| estado | enum | `ACTIVA` / `EGRESADO` / `BAJA` |
-
-### `cursada_materia`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| inscripcion_id | FK → inscripciones | Inscripción del alumno |
-| materia_id | FK → materias | Materia cursada |
-| estado | enum | `EN_CURSO` / `REGULAR` / `APROBADA` / `LIBRE` / `DESAPROBADA` |
-| nota_cursada | decimal | Nota de cursada (opcional) |
-| nota_final | decimal | Nota de examen final (opcional) |
-| fecha_estado | date | Fecha del último cambio de estado |
-
-### `certificados`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| id | UUID/PK | Identificador |
-| alumno_id | FK → alumnos | Alumno |
-| titulo_id | FK → titulos | Título certificado |
-| resolucion_id | FK → resoluciones | Resolución bajo la que se emite |
-| tipo | enum | `PARCIAL_ANIO` / `TITULO_COMPLETO` |
-| anio_curricular_id | FK/null | Solo si es parcial por año |
-| fecha_emision | date | — |
-| estado | enum | `EMITIDO` / `ANULADO` |
-
-## 6. Arquitectura técnica
-
-| Componente | Elección propuesta |
-|---|---|
-| Runtime | Node.js 20 LTS |
+| Runtime | Node.js 20 |
 | Framework web | Express 4 |
-| Base de datos | PostgreSQL 16 |
-| ORM | Prisma (alternativa: Sequelize) |
-| Autenticación | JWT + roles (`admin`, `secretaria`, `alumno`) |
-| Validación | Zod o express-validator |
-| Documentación API | Swagger / OpenAPI (swagger-jsdoc + swagger-ui-express) |
-| Logs | winston o pino |
+| Base de datos | PostgreSQL 18 (Docker) |
+| ORM | Prisma 5 |
 | Contenerización | Docker + docker-compose |
-| Tests | Jest + Supertest |
+| Validación | Zod (integración en curso) |
 
-## 7. Estructura del proyecto
+Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en el plan, por ser la versión estable más reciente al momento de arrancar. Esto implicó un ajuste en la configuración del volumen del contenedor (ver sección "Notas técnicas").
+
+---
+
+## Estructura del repositorio
 
 ```
-plataforma-academica/
-├── src/
-│   ├── config/            # conexión DB, variables de entorno
-│   ├── models/            # esquema Prisma o modelos Sequelize
-│   ├── controllers/       # lógica de cada endpoint
-│   ├── routes/            # definición de rutas Express
-│   ├── services/          # reglas de negocio (correlativas, resoluciones, certificados)
-│   ├── middlewares/       # auth, manejo de errores, validaciones
-│   ├── validators/        # esquemas de validación de entrada
-│   ├── utils/             # helpers (generación de código de resolución, PDF, etc.)
-│   └── app.js             # bootstrap de Express
+ProyectoGemAdvanced/
 ├── prisma/
-│   ├── schema.prisma
-│   └── migrations/
-├── tests/
-│   ├── unit/
-│   └── integration/
-├── docker/
-│   └── Dockerfile
-├── docker-compose.yml
+│   ├── schema.prisma              # Modelo de datos completo (10 entidades)
+│   ├── seed.js                    # Script de carga de datos de prueba
+│   └── migrations/                # Migraciones versionadas
+├── src/
+│   ├── config/
+│   │   └── db.js                  # Cliente Prisma configurado
+│   ├── controllers/
+│   │   ├── titulo.controller.js
+│   │   └── curricular.controller.js
+│   ├── routes/
+│   │   ├── titulo.routes.js
+│   │   └── curricular.routes.js
+│   ├── services/
+│   │   ├── titulo.service.js      # Lógica de negocio de títulos y resoluciones
+│   │   └── curricular.service.js  # Lógica de años y materias
+│   └── app.js                     # Bootstrap de Express
+├── docker-compose.yml             # PostgreSQL 18 en puerto 5434
 ├── .env.example
+├── api_tests.http                 # Colección de requests para probar la API
 ├── package.json
 └── README.md
 ```
 
-## 8. API — Endpoints
+---
 
-### Autenticación
-| Método | Endpoint | Descripción |
+## Cómo levantarlo en tu máquina
+
+### Requisitos previos
+
+- Node.js 20 o superior
+- Docker Desktop corriendo
+- Un editor de código (recomendado: VS Code)
+
+### Paso 1 — Clonar y entrar al proyecto
+
+```bash
+git clone https://github.com/FrancoCalegari/ProyectoGemAdvanced.git
+cd ProyectoGemAdvanced
+git checkout feature/backend-plataforma-academica
+```
+
+### Paso 2 — Levantar la base de datos
+
+```bash
+docker compose up -d
+```
+
+Esto levanta PostgreSQL 18 en el puerto `5434`. La base se llama `plataforma_academica`.
+
+### Paso 3 — Instalar dependencias
+
+```bash
+npm install
+```
+
+### Paso 4 — Configurar variables de entorno
+
+Copiar el archivo de ejemplo y completar los valores:
+
+```bash
+cp .env.example .env
+```
+
+El `.env.example` ya viene con valores por defecto funcionales para desarrollo local.
+
+### Paso 5 — Aplicar migraciones y cargar datos
+
+```bash
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+El seeder carga automáticamente:
+
+- 5 títulos terciarios (Software, Enfermería, Administración, Análisis, Turismo)
+- 5 resoluciones vigentes
+- 15 años curriculares (3 por título)
+- 150 materias (10 por año)
+- Correlativas en cascada
+- 20 alumnos distribuidos en los 5 títulos
+- Cursadas con estados variados
+- 9 certificados de ejemplo
+
+### Paso 6 — Levantar el servidor
+
+```bash
+npm run dev
+```
+
+El servidor queda escuchando en `http://localhost:3000`.
+
+Verificar que todo funciona:
+
+```bash
+curl http://localhost:3000/health
+# → {"status":"ok","database":"connected"}
+```
+
+---
+
+## API disponible
+
+### Healthcheck
+
+| Método | Endpoint | Qué hace |
 |---|---|---|
-| POST | `/api/auth/login` | Login, devuelve JWT |
-| POST | `/api/auth/register` | Alta de usuario (solo admin) |
+| GET | `/health` | Verifica que el servidor y la DB estén arriba |
 
 ### Títulos
-| Método | Endpoint | Descripción |
+
+| Método | Endpoint | Qué hace |
 |---|---|---|
-| GET | `/api/titulos` | Listar títulos |
-| POST | `/api/titulos` | Crear título (crea automáticamente su primera resolución) |
-| GET | `/api/titulos/:id` | Detalle |
-| PUT | `/api/titulos/:id` | Editar datos generales |
-| DELETE | `/api/titulos/:id` | Baja lógica |
+| POST | `/api/titulos` | Crea un título y su primera resolución vigente en una sola operación |
+| GET | `/api/titulos` | Lista todos los títulos con sus resoluciones |
+| GET | `/api/titulos/:id` | Devuelve el detalle completo (años y materias incluidas) |
+| POST | `/api/titulos/:id/resoluciones` | Crea una nueva resolución y cierra la vigente anterior |
 
-### Resoluciones
-| Método | Endpoint | Descripción |
+### Currícula
+
+| Método | Endpoint | Qué hace |
 |---|---|---|
-| GET | `/api/titulos/:tituloId/resoluciones` | Historial de resoluciones de un título |
-| POST | `/api/titulos/:tituloId/resoluciones` | Crear nueva resolución (cierra automáticamente la vigente) |
-| GET | `/api/resoluciones/:id` | Detalle con años y materias |
-| POST | `/api/resoluciones/:id/cerrar` | Cerrar manualmente una resolución |
+| POST | `/api/curricular/resoluciones/:resolucionId/anios` | Crea un año curricular dentro de una resolución |
+| POST | `/api/curricular/anios/:anioId/materias` | Crea una materia dentro de un año |
+| GET | `/api/curricular/resoluciones/:resolucionId/plan` | Devuelve el plan completo de una resolución |
 
-### Años curriculares y materias
-| Método | Endpoint | Descripción |
-|---|---|---|
-| POST | `/api/resoluciones/:id/anios` | Crear año dentro de una resolución |
-| GET | `/api/anios/:id/materias` | Listar materias de un año |
-| POST | `/api/anios/:id/materias` | Crear materia |
-| PUT | `/api/materias/:id` | Editar materia |
-| DELETE | `/api/materias/:id` | Eliminar materia (solo si la resolución no está cerrada) |
+En `api_tests.http` hay ejemplos listos para ejecutar desde VS Code (con la extensión REST Client).
 
-### Correlatividades
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET | `/api/materias/:id/correlativas` | Listar correlativas de una materia |
-| POST | `/api/materias/:id/correlativas` | Agregar correlativa (`materia_requerida_id`, `tipo`) |
-| DELETE | `/api/correlatividades/:id` | Quitar correlativa |
+---
 
-### Alumnos e inscripciones
-| Método | Endpoint | Descripción |
-|---|---|---|
-| GET / POST | `/api/alumnos` | Listar / crear alumnos |
-| GET / PUT | `/api/alumnos/:id` | Detalle / editar |
-| POST | `/api/alumnos/:id/inscripciones` | Inscribir a un título (toma la resolución vigente) |
-| GET | `/api/alumnos/:id/inscripciones` | Historial de inscripciones |
+## Reglas de negocio ya implementadas
 
-### Cursada / historia académica
-| Método | Endpoint | Descripción |
-|---|---|---|
-| POST | `/api/alumnos/:id/cursadas` | Registrar/actualizar estado de una materia (valida correlativas) |
-| GET | `/api/alumnos/:id/historia-academica` | Ver todo el recorrido académico |
+Estas son las reglas del dominio que ya están funcionando en el código.
 
-### Certificados
-| Método | Endpoint | Descripción |
-|---|---|---|
-| POST | `/api/alumnos/:id/certificados` | Solicitar certificado (`PARCIAL_ANIO` o `TITULO_COMPLETO`) |
-| GET | `/api/alumnos/:id/certificados` | Listar certificados emitidos |
-| GET | `/api/certificados/:id/pdf` | Descargar PDF del certificado |
+### Versionado de resoluciones
 
-## 9. Flujos principales
+- **Un título siempre nace con una resolución vigente.** La creación del título y su primera resolución ocurren en una única transacción: si falla una, falla la otra. Nunca queda un título huérfano sin currícula.
+- **Al crear una nueva resolución, la anterior se cierra automáticamente.** Se le asigna `fecha_fin_vigencia` igual a la fecha de inicio de la nueva, y su estado pasa a `CERRADA`.
+- **Las resoluciones cerradas son inmutables.** No se editan ni se borran: quedan como registro histórico.
+- **Los alumnos quedan atados a la resolución vigente al momento de inscribirse.** Su plan de aprobación se congela, aunque después se abran nuevas resoluciones para el mismo título. (Los endpoints de inscripción están en desarrollo, pero el modelo de datos ya lo soporta.)
 
-**A. Cambio de currícula de un título**
-1. La secretaría llama a `POST /api/titulos/:id/resoluciones` con la nueva currícula (años + materias).
-2. El servicio localiza la resolución `VIGENTE` actual y la marca `CERRADA` con `fecha_fin_vigencia = hoy`.
-3. Crea la nueva resolución en estado `VIGENTE`, generando su código (`numero` + `anio_creacion`).
-4. Los alumnos ya inscriptos **no se mueven** de resolución; los nuevos ingresantes se inscriben bajo la nueva.
+### Validaciones ya activas
 
-**B. Registrar avance de un alumno en una materia**
-1. Se llama a `POST /api/alumnos/:id/cursadas` con `materia_id` y el nuevo `estado`.
-2. El servicio revisa las correlatividades de esa materia según el `tipo` correspondiente (`PARA_CURSAR` o `PARA_RENDIR_FINAL`).
-3. Si alguna correlativa no cumple el estado mínimo requerido, se rechaza la operación con el detalle de qué materia falta.
-4. Si todo es válido, se guarda/actualiza el registro en `cursada_materia`.
+- No se puede crear un título con un nombre que ya existe.
+- No se puede crear una resolución con un código que ya existe.
+- No se puede crear un año con un número repetido dentro de la misma resolución.
+- No se puede crear una materia con un código repetido dentro del mismo año.
 
-**C. Solicitud de certificado de título completo**
-1. Se llama a `POST /api/alumnos/:id/certificados` con `tipo = TITULO_COMPLETO`.
-2. El servicio obtiene la `resolucion_id` de la inscripción del alumno y todas las materias de esa resolución.
-3. Verifica que el alumno tenga estado `APROBADA` en el 100% de esas materias.
-4. Si se cumple, genera el certificado y su PDF; si no, devuelve el listado de materias pendientes.
+---
 
-## 10. Docker
+## Modelo de datos
 
-**`docker/Dockerfile`**
-```dockerfile
-FROM node:20-alpine AS base
-WORKDIR /app
+El schema completo está en `prisma/schema.prisma`. Tiene 10 entidades y 8 enums. Las decisiones de diseño más importantes:
 
-COPY package*.json ./
-RUN npm install --omit=dev
+- **`ANIO_CURRICULAR` y `MATERIA` cuelgan de `RESOLUCION`**, no de `TITULO`. Esto permite que cada versión de la currícula tenga su propio set de años y materias sin afectar a versiones anteriores.
+- **`CORRELATIVIDAD` es una tabla que referencia dos veces a `MATERIA`** (`materia_id` y `materia_requerida_id`), representando el requisito de una materia sobre otra.
+- **Todos los IDs son UUID**, lo que permite generar registros en distintas partes del sistema sin colisiones.
+- **Los `onDelete` están pensados para preservar datos históricos:** por ejemplo, no se puede borrar un título si tiene inscripciones asociadas (RESTRICT), pero sí se puede borrar una resolución y se llevan en cascada sus años y materias.
 
-COPY . .
+---
 
-EXPOSE 3000
-CMD ["node", "src/app.js"]
-```
+## Notas técnicas
 
-**`docker-compose.yml`**
-```yaml
-version: "3.9"
-services:
-  api:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    container_name: plataforma-academica-api
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    depends_on:
-      - db
-    restart: unless-stopped
+### Sobre PostgreSQL 18 en Docker
 
-  db:
-    image: postgres:16-alpine
-    container_name: plataforma-academica-db
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    restart: unless-stopped
+A partir de PostgreSQL 18, la imagen oficial de Docker cambió la forma en que gestiona el directorio de datos. **El volumen ya no se monta en `/var/lib/postgresql/data`** sino en `/var/lib/postgresql`. Si se usa la ruta vieja, el contenedor entra en un loop de reinicio.
 
-volumes:
-  db_data:
-```
+El `docker-compose.yml` ya tiene esto resuelto.
 
-## 11. Variables de entorno
+### Sobre el seeder
 
-**`.env.example`**
-```
-PORT=3000
-NODE_ENV=development
+El script `prisma/seed.js` es **idempotente**: cada vez que se ejecuta, limpia primero toda la base y después carga los datos. Esto permite iterar sobre los datos de prueba sin generar duplicados ni inconsistencias. Es seguro ejecutarlo múltiples veces.
 
-DB_HOST=db
-DB_PORT=5432
-DB_USER=admin
-DB_PASSWORD=changeme
-DB_NAME=plataforma_academica
+### Sobre las transacciones
 
-JWT_SECRET=cambiar_este_valor
-JWT_EXPIRES_IN=8h
-```
+Las operaciones críticas (crear título + resolución, cerrar resolución vigente + crear nueva) usan `prisma.$transaction` para garantizar atomicidad. Si falla cualquier paso, se revierte todo.
 
-## 12. Plan de implementación por fases
+---
 
-| Fase | Objetivo | Entregables | Duración estimada |
-|---|---|---|---|
-| 0 | Setup inicial | Repo, Docker, Express base, conexión a DB | 2-3 días |
-| 1 | Modelo de datos | Schema Prisma/migraciones: Título, Resolución, Año, Materia | 3-4 días |
-| 2 | Títulos y Resoluciones | CRUD completo + lógica de cierre/apertura automática | 3-4 días |
-| 3 | Materias y Correlatividades | CRUD de materias, alta/baja de correlativas | 3-4 días |
-| 4 | Alumnos e Inscripciones | CRUD de alumnos, inscripción a resolución vigente | 3 días |
-| 5 | Cursada e historia académica | Registro de estados, validación de correlativas | 4-5 días |
-| 6 | Certificados | Certificado parcial y de título completo + generación de PDF | 3-4 días |
-| 7 | Autenticación y roles | JWT, roles admin/secretaría/alumno, permisos por endpoint | 3 días |
-| 8 | Documentación y testing | Swagger, tests unitarios e integración | 4 días |
-| 9 | Despliegue | docker-compose productivo, pipeline CI básico | 2 días |
+## Próximos pasos
 
-**Estimación total: 4 a 5 semanas** para un desarrollador full-time (puede paralelizarse con más de uno).
+El plan de desarrollo continúa con:
 
-## 13. Testing y calidad
+1. **Fase 2 (resto):** endpoints de edición y baja lógica de títulos, años y materias. Cierre manual de resoluciones.
+2. **Fase 3:** correlatividades (con validación de ciclos).
+3. **Fase 4:** alumnos e inscripciones.
+4. **Fase 5:** cursadas e historia académica (con validación de correlativas).
+5. **Fase 6:** certificados (parciales y de título completo, con generación de PDF).
+6. **Fase 7:** autenticación con JWT y control de roles.
+7. **Fase 8:** tests unitarios e integración + documentación Swagger.
+8. **Fase 9:** despliegue con Dockerfile para el API.
 
-- **Unitarios:** servicios de negocio críticos — cierre/apertura de resoluciones, validación de correlativas, cálculo de "título completo".
-- **Integración:** endpoints principales con base de datos de test (contenedor Postgres aparte).
-- **Linter:** ESLint + Prettier para consistencia de estilo.
-- **CI:** ejecutar lint + tests en cada push (GitHub Actions u otro).
+---
 
-## 14. Seguridad
+## Sobre este repositorio
 
-- Contraseñas hasheadas con bcrypt.
-- JWT con expiración corta + refresh token opcional.
-- Validación estricta de entrada en todos los endpoints (Zod/Joi).
-- Control de roles: solo `admin`/`secretaria` pueden crear/cerrar resoluciones o cargar materias; el rol `alumno` solo puede consultar su propia información y solicitar certificados.
-- Rate limiting básico en endpoints públicos (login).
-
-## 15. Mejoras futuras
-
-- **Equivalencias entre resoluciones:** permitir que un alumno bajo una resolución cerrada migre a la nueva, mapeando materias equivalentes.
-- **Mesas de examen:** módulo para gestionar turnos de finales y actas.
-- **Notificaciones:** email/SMS cuando se habilita a rendir un final o se emite un certificado.
-- **Panel de reportes:** estadísticas de rendimiento por cohorte, materia o resolución.
-- **Firma digital** de certificados en PDF.
+Este es el repositorio de trabajo del proyecto. El plan original de implementación (consigna) se conserva en [`CONSIGNA.md`](./CONSIGNA.md) como referencia.

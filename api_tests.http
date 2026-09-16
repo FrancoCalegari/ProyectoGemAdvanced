@@ -1,0 +1,53 @@
+### Health Check de la API
+GET http://127.0.0.1:8000/
+Accept: application/json
+
+###
+
+### Crear un Título nuevo (POST)
+POST http://127.0.0.1:8000/titulos/
+Content-Type: application/json
+
+{
+  "nombre": "Tecnicatura Superior en Desarrollo de SoftwareFreno de mano puesto. Nada de frontend ni lógica extra: solo verificar conexión y persistencia de datos desde la consola de VS Code.
+
+Para probar la inserción y lectura directa en la base de datos, un script mínimo de prueba en Python resuelve la verificación paso a paso:
+
+```python
+# test_db.py
+from datetime import datetime
+
+# Si usas SQLite:
+import sqlite3
+
+def test_sqlite():
+    conn = sqlite3.connect("test.db")
+    cursor = conn.cursor()
+
+    # 1. Crear tabla de prueba
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS prueba (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            detalle TEXT,
+            fecha TEXT
+        )
+    """)
+
+    # 2. Insertar un registro
+    ahora = datetime.now().isoformat()
+    cursor.execute("INSERT INTO prueba (detalle, fecha) VALUES (?, ?)", ("Test de carga desde VS Code", ahora))
+    conn.commit()
+    print("-> Registro insertado correctamente.")
+
+    # 3. Leer la tabla completa
+    cursor.execute("SELECT * FROM prueba")
+    filas = cursor.fetchall()
+    
+    print("\n--- Contenido actual en la BD ---")
+    for fila in filas:
+        print(fila)
+
+    conn.close()
+
+if __name__ == "__main__":
+    test_sqlite()
