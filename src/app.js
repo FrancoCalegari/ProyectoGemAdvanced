@@ -4,6 +4,9 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import prisma from './config/db.js';
+
+import { errorHandler, notFound } from './middlewares/index.js';
+
 import tituloRoutes from './routes/titulo.routes.js';
 import curricularRoutes from './routes/curricular.routes.js';
 
@@ -13,11 +16,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Rutas de la API
-app.use('/api/titulos', tituloRoutes);
-app.use('/api/curricular', curricularRoutes);
-
-// Healthcheck
 app.get('/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -26,6 +24,12 @@ app.get('/health', async (req, res) => {
     res.status(500).json({ status: 'error', database: error.message });
   }
 });
+
+app.use('/api/titulos', tituloRoutes);
+app.use('/api/curricular', curricularRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
