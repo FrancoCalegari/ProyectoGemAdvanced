@@ -1,53 +1,45 @@
+// ============================================================
+// CONTROLLER DE TÍTULOS
+// ============================================================
+
 import { TituloService } from '../services/titulo.service.js';
 
 export class TituloController {
-  static async crear(req, res) {
+  static async crear(req, res, next) {
     try {
       const nuevoTitulo = await TituloService.crearTituloConResolucion(req.body);
       return res.status(201).json(nuevoTitulo);
     } catch (error) {
-      if (error.code === 'P2002') {
-        return res.status(409).json({ error: 'El código de resolución ya existe en el sistema.' });
-      }
-      return res.status(400).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async listar(req, res) {
+  static async listar(req, res, next) {
     try {
       const titulos = await TituloService.obtenerTodos();
       return res.status(200).json(titulos);
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async obtenerPorId(req, res) {
+  static async obtenerPorId(req, res, next) {
     try {
       const { id } = req.params;
       const titulo = await TituloService.obtenerPorId(id);
       return res.status(200).json(titulo);
     } catch (error) {
-      if (error.message === 'TITULO_NOT_FOUND') {
-        return res.status(404).json({ error: 'Título no encontrado.' });
-      }
-      return res.status(500).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async crearResolucion(req, res) {
+  static async crearResolucion(req, res, next) {
     try {
       const { id } = req.params;
       const nuevaResolucion = await TituloService.agregarNuevaResolucion(id, req.body);
       return res.status(201).json(nuevaResolucion);
     } catch (error) {
-      if (error.message === 'TITULO_NOT_FOUND') {
-        return res.status(404).json({ error: 'Título no encontrado.' });
-      }
-      if (error.code === 'P2002') {
-        return res.status(409).json({ error: 'El código de resolución ya existe.' });
-      }
-      return res.status(400).json({ error: error.message });
+      next(error);
     }
   }
 }

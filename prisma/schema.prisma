@@ -62,7 +62,7 @@ enum estado_certificado {
 
 model Titulo {
   id            String         @id @default(uuid()) @db.Uuid
-  nombre        String
+  nombre        String	       @unique
   nivel         String
   duracionAnios Int            @map("duracion_anios")
   estado        estado_titulo  @default(ACTIVO)
@@ -90,6 +90,7 @@ model Resolucion {
   inscripciones       Inscripcion[]
   certificados        Certificado[]
 
+  @@unique([tituloId, codigo])
   @@map("resoluciones")
 }
 
