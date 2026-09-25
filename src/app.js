@@ -8,6 +8,7 @@ import prisma from './config/db.js';
 import { errorHandler, notFound } from './middlewares/index.js';
 
 import tituloRoutes from './routes/titulo.routes.js';
+import resolucionRoutes from './routes/resolucion.routes.js';
 import curricularRoutes from './routes/curricular.routes.js';
 
 const app = express();
@@ -26,6 +27,7 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/api/titulos', tituloRoutes);
+app.use('/api/resoluciones', resolucionRoutes);
 app.use('/api/curricular', curricularRoutes);
 
 app.use(notFound);

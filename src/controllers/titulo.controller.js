@@ -1,7 +1,3 @@
-// ============================================================
-// CONTROLLER DE TÍTULOS
-// ============================================================
-
 import { TituloService } from '../services/titulo.service.js';
 
 export class TituloController {
@@ -38,6 +34,26 @@ export class TituloController {
       const { id } = req.params;
       const nuevaResolucion = await TituloService.agregarNuevaResolucion(id, req.body);
       return res.status(201).json(nuevaResolucion);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async actualizar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const titulo = await TituloService.actualizar(id, req.body);
+      return res.status(200).json(titulo);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async darDeBaja(req, res, next) {
+    try {
+      const { id } = req.params;
+      const titulo = await TituloService.darDeBaja(id);
+      return res.status(200).json(titulo);
     } catch (error) {
       next(error);
     }

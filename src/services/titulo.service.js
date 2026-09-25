@@ -1,7 +1,3 @@
-// ============================================================
-// SERVICIO DE TÍTULOS
-// ============================================================
-
 import prisma from '../config/db.js';
 import { AppError, ERRORS } from '../utils/errors.js';
 
@@ -128,6 +124,52 @@ export class TituloService {
       });
 
       return nuevaResolucion;
+    });
+  }
+
+  static async actualizar(id, data) {
+    const titulo = await prisma.titulo.findUnique({ where: { id } });
+    if (!titulo) {
+      throw new AppError(...ERRORS.TITULO_NOT_FOUND);
+    }
+
+    if (data.nombre && data.nombre !== titulo.nombre) {
+      const existente = await prisma.titulo.findUnique({
+        where: { nombre: data.nombre },
+      });
+      if (existente) {
+        throw new AppError(...ERRORS.TITULO_NOMBRE_DUP);
+      }
+    }
+
+    return await prisma.titulo.update({
+      where: { id },
+      data: {
+        ...(data.nombre && { nombre: data.nombre }),
+        ...(data.nivel && { nivel: data.nivel }),
+        ...(data.duracionAnios && { duracionAnios: data.duracionAnios }),
+        ...(data.estado && { estado: data.estado }),
+      },
+    });
+  }
+
+  static async darDeBaja(id) {
+    const titulo = await prisma.titulo.findUnique({
+      where: { id },
+      include: { inscripciones: true },
+    });
+
+    if (!titulo) {
+      throw new AppError(...ERRORS.TITULO_NOT_FOUND);
+    }
+
+    if (titulo.inscripciones.length > 0) {
+      throw new AppError(...ERRORS.TITULO_CON_INSCRIP);
+    }
+
+    return await prisma.titulo.update({
+      where: { id },
+      data: { estado: 'DE_BAJA' },
     });
   }
 }
