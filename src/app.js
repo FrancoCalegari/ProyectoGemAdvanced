@@ -11,12 +11,17 @@ import tituloRoutes from './routes/titulo.routes.js';
 import resolucionRoutes from './routes/resolucion.routes.js';
 import curricularRoutes from './routes/curricular.routes.js';
 import correlatividadRoutes from './routes/correlatividad.routes.js';
+import alumnoRoutes from './routes/alumno.routes.js';
+import inscripcionRoutes from './routes/inscripcion.routes.js';
+import equivalenciaRoutes from './routes/equivalencia.routes.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api', equivalenciaRoutes);
 
 app.get('/health', async (req, res) => {
   try {
@@ -31,6 +36,8 @@ app.use('/api', correlatividadRoutes);
 app.use('/api/titulos', tituloRoutes);
 app.use('/api/resoluciones', resolucionRoutes);
 app.use('/api/curricular', curricularRoutes);
+app.use('/api/alumnos', alumnoRoutes);
+app.use('/api/inscripciones', inscripcionRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
