@@ -10,6 +10,7 @@ import { errorHandler, notFound } from './middlewares/index.js';
 import tituloRoutes from './routes/titulo.routes.js';
 import resolucionRoutes from './routes/resolucion.routes.js';
 import curricularRoutes from './routes/curricular.routes.js';
+import correlatividadRoutes from './routes/correlatividad.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
+app.use('/api', correlatividadRoutes);
 app.use('/api/titulos', tituloRoutes);
 app.use('/api/resoluciones', resolucionRoutes);
 app.use('/api/curricular', curricularRoutes);
