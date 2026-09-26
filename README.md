@@ -1,4 +1,4 @@
-# Backend — Plataforma de Gestión de Carreras Académicas
+﻿# Backend — Plataforma de Gestión de Carreras Académicas
 
 Este repositorio contiene el backend de una plataforma pensada para que una institución educativa pueda administrar sus carreras de forma ordenada, versionando los planes de estudio sin perder el historial académico de nadie.
 
@@ -8,19 +8,19 @@ La idea central es simple pero poderosa: cuando una institución cambia el plan 
 
 ## Estado actual del proyecto
 
-El proyecto está en construcción activa. Este primer push incluye las **Fases 0, 1 y parte de la 2** del plan de implementación.
+El proyecto está en construcción activa. Actualmente las **Fases 0 a 5** del plan están completas:
 
 | Fase | Descripción | Estado |
 |---|---|---|
 | 0 | Setup inicial (Docker, Express, DB) | Completada |
 | 1 | Modelo de datos (Prisma) | Completada |
-| 2 | Títulos y Resoluciones | En curso |
-| 3 | Materias y Correlatividades | Pendiente |
-| 4 | Alumnos e Inscripciones | Pendiente |
-| 5 | Cursada e Historia Académica | Pendiente |
-| 6 | Certificados | Pendiente |
+| 2 | Títulos, Resoluciones, Años y Materias | Completada |
+| 3 | Correlatividades | Completada |
+| 4 | Alumnos, Admisión, Inscripciones, Equivalencias | Completada |
+| 5 | Cursadas e Historia Académica | Completada |
+| 6 | Certificados (parciales y de título completo) | En desarrollo |
 | 7 | Autenticación y Roles | Pendiente |
-| 8 | Testing y Documentación | Pendiente |
+| 8 | Testing y Documentación (Swagger) | Pendiente |
 | 9 | Despliegue | Pendiente |
 
 ---
@@ -35,6 +35,7 @@ El proyecto está en construcción activa. Este primer push incluye las **Fases 
 | ORM | Prisma 5 |
 | Contenerización | Docker + docker-compose |
 | Validación | Zod (integración en curso) |
+| Generación de PDF | pdfkit (pendiente) |
 
 Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en el plan, por ser la versión estable más reciente al momento de arrancar. Esto implicó un ajuste en la configuración del volumen del contenedor (ver sección "Notas técnicas").
 
@@ -45,27 +46,28 @@ Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en 
 ```
 ProyectoGemAdvanced/
 ├── prisma/
-│   ├── schema.prisma              # Modelo de datos completo (10 entidades)
-│   ├── seed.js                    # Script de carga de datos de prueba
+│   ├── schema.prisma              # Modelo de datos completo (12 modelos, 9 enums)
+│   ├── seed.js                    # Carga de datos de prueba (5 títulos, 20 alumnos)
 │   └── migrations/                # Migraciones versionadas
 ├── src/
 │   ├── config/
-│   │   └── db.js                  # Cliente Prisma configurado
-│   ├── controllers/
-│   │   ├── titulo.controller.js
-│   │   └── curricular.controller.js
-│   ├── routes/
-│   │   ├── titulo.routes.js
-│   │   └── curricular.routes.js
-│   ├── services/
-│   │   ├── titulo.service.js      # Lógica de negocio de títulos y resoluciones
-│   │   └── curricular.service.js  # Lógica de años y materias
+│   │   └── db.js                  # Cliente Prisma
+│   ├── controllers/               # Handlers HTTP (9 controllers)
+│   ├── middlewares/
+│   │   └── index.js               # errorHandler, validate, notFound
+│   ├── routes/                    # Definición de rutas (6 routers)
+│   ├── services/                  # Lógica de negocio (9 services)
+│   ├── utils/
+│   │   ├── errors.js              # AppError + códigos de error
+│   │   └── helpers.js             # Utilidades
+│   ├── validators/                # (vacío, se llena con Zod)
 │   └── app.js                     # Bootstrap de Express
 ├── docker-compose.yml             # PostgreSQL 18 en puerto 5434
 ├── .env.example
-├── api_tests.http                 # Colección de requests para probar la API
+├── api_tests.http                 # Colección de requests
 ├── package.json
-└── README.md
+├── README.md
+└── CONSIGNA.md                    # Plan original de implementación
 ```
 
 ---
@@ -102,8 +104,6 @@ npm install
 
 ### Paso 4 — Configurar variables de entorno
 
-Copiar el archivo de ejemplo y completar los valores:
-
 ```bash
 cp .env.example .env
 ```
@@ -123,10 +123,12 @@ El seeder carga automáticamente:
 - 5 resoluciones vigentes
 - 15 años curriculares (3 por título)
 - 150 materias (10 por año)
-- Correlativas en cascada
-- 20 alumnos distribuidos en los 5 títulos
+- ~2000 correlatividades en cascada
+- 20 alumnos con documentación y domicilio completo
+- Inscripciones (con validación de admisión)
 - Cursadas con estados variados
-- 9 certificados de ejemplo
+- Certificados de ejemplo
+- 2 equivalencias entre carreras
 
 ### Paso 6 — Levantar el servidor
 
@@ -149,59 +151,185 @@ curl http://localhost:3000/health
 
 ### Healthcheck
 
-| Método | Endpoint | Qué hace |
+| Método | Endpoint | Descripción |
 |---|---|---|
-| GET | `/health` | Verifica que el servidor y la DB estén arriba |
+| GET | `/health` | Estado del servidor y conexión a DB |
 
 ### Títulos
 
-| Método | Endpoint | Qué hace |
+| Método | Endpoint | Descripción |
 |---|---|---|
-| POST | `/api/titulos` | Crea un título y su primera resolución vigente en una sola operación |
-| GET | `/api/titulos` | Lista todos los títulos con sus resoluciones |
-| GET | `/api/titulos/:id` | Devuelve el detalle completo (años y materias incluidas) |
-| POST | `/api/titulos/:id/resoluciones` | Crea una nueva resolución y cierra la vigente anterior |
+| GET | `/api/titulos` | Listar títulos con sus resoluciones |
+| POST | `/api/titulos` | Crear título con su primera resolución vigente |
+| GET | `/api/titulos/:id` | Detalle completo (años y materias) |
+| PUT | `/api/titulos/:id` | Editar datos generales |
+| DELETE | `/api/titulos/:id` | Baja lógica (bloquea si tiene inscripciones) |
+| POST | `/api/titulos/:id/resoluciones` | Crear nueva resolución (cierra la vigente) |
+| GET | `/api/titulos/:tituloId/resoluciones` | Historial de resoluciones |
+
+### Resoluciones
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/resoluciones/:id` | Detalle con años y materias |
+| POST | `/api/resoluciones/:id/cerrar` | Cierre manual |
 
 ### Currícula
 
-| Método | Endpoint | Qué hace |
+| Método | Endpoint | Descripción |
 |---|---|---|
-| POST | `/api/curricular/resoluciones/:resolucionId/anios` | Crea un año curricular dentro de una resolución |
-| POST | `/api/curricular/anios/:anioId/materias` | Crea una materia dentro de un año |
-| GET | `/api/curricular/resoluciones/:resolucionId/plan` | Devuelve el plan completo de una resolución |
+| POST | `/api/curricular/resoluciones/:resolucionId/anios` | Crear año curricular |
+| GET | `/api/curricular/resoluciones/:resolucionId/plan` | Plan completo de una resolución |
+| POST | `/api/curricular/anios/:anioId/materias` | Crear materia |
+| GET | `/api/curricular/anios/:id/materias` | Listar materias de un año |
+| PUT | `/api/curricular/materias/:id` | Editar materia |
+| DELETE | `/api/curricular/materias/:id` | Eliminar materia (bloquea si tiene cursadas) |
 
-En `api_tests.http` hay ejemplos listos para ejecutar desde VS Code (con la extensión REST Client).
+### Correlatividades
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/materias/:id/correlativas` | Listar correlativas de una materia |
+| POST | `/api/materias/:id/correlativas` | Agregar correlativa (valida ciclos, misma resolución, no auto-correlación) |
+| DELETE | `/api/correlatividades/:id` | Eliminar correlativa |
+
+### Alumnos
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/alumnos` | Listar alumnos (con filtros y búsqueda) |
+| POST | `/api/alumnos` | Crear alumno |
+| GET | `/api/alumnos/:id` | Detalle con inscripciones y exámenes |
+| PUT | `/api/alumnos/:id` | Editar datos |
+| DELETE | `/api/alumnos/:id` | Eliminar (bloquea si tiene registros) |
+
+### Admisión y Exámenes Nivelatorios
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/alumnos/:id/admision` | Estado de admisión (documentación + examen) |
+| GET | `/api/alumnos/:id/examenes` | Listar exámenes nivelatorios |
+| POST | `/api/alumnos/:id/examenes` | Registrar examen |
+| PUT | `/api/alumnos/:id/examenes/:examenId` | Actualizar resultado |
+
+### Inscripciones
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/alumnos/:id/inscripciones` | Historial de inscripciones |
+| POST | `/api/alumnos/:id/inscripciones` | Inscribir a un título (valida admisión + toma resolución vigente) |
+| PUT | `/api/inscripciones/:id` | Cambiar estado (ACTIVA/EGRESADO/BAJA) |
+| GET | `/api/inscripciones/:id/cursadas` | Listar cursadas de una inscripción |
+
+### Equivalencias y Cambio de Carrera
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/equivalencias` | Listar equivalencias |
+| POST | `/api/equivalencias` | Crear equivalencia |
+| DELETE | `/api/equivalencias/:id` | Eliminar equivalencia |
+| GET | `/api/materias/:id/equivalencias` | Equivalencias de una materia |
+| POST | `/api/alumnos/:id/cambio-carrera` | Cambiar de carrera (aplica equivalencias automáticamente) |
+
+### Cursadas e Historia Académica
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/api/alumnos/:id/cursadas` | Registrar/actualizar estado de una materia |
+| GET | `/api/alumnos/:id/historia-academica` | Recorrido académico completo con % de avance |
 
 ---
 
-## Reglas de negocio ya implementadas
-
-Estas son las reglas del dominio que ya están funcionando en el código.
+## Reglas de negocio implementadas
 
 ### Versionado de resoluciones
 
-- **Un título siempre nace con una resolución vigente.** La creación del título y su primera resolución ocurren en una única transacción: si falla una, falla la otra. Nunca queda un título huérfano sin currícula.
-- **Al crear una nueva resolución, la anterior se cierra automáticamente.** Se le asigna `fecha_fin_vigencia` igual a la fecha de inicio de la nueva, y su estado pasa a `CERRADA`.
-- **Las resoluciones cerradas son inmutables.** No se editan ni se borran: quedan como registro histórico.
-- **Los alumnos quedan atados a la resolución vigente al momento de inscribirse.** Su plan de aprobación se congela, aunque después se abran nuevas resoluciones para el mismo título. (Los endpoints de inscripción están en desarrollo, pero el modelo de datos ya lo soporta.)
+- **Un título siempre nace con una resolución vigente.** Transacción atómica.
+- **Al crear una nueva resolución, la anterior se cierra automáticamente.**
+- **Las resoluciones cerradas son inmutables.** No se editan ni se borran.
+- **Los alumnos quedan atados a la resolución vigente al momento de inscribirse.**
 
-### Validaciones ya activas
+### Validaciones de unicidad
 
-- No se puede crear un título con un nombre que ya existe.
-- No se puede crear una resolución con un código que ya existe.
-- No se puede crear un año con un número repetido dentro de la misma resolución.
-- No se puede crear una materia con un código repetido dentro del mismo año.
+- `titulo.nombre` — único global
+- `resolucion.codigo` — único por título
+- `anio_curricular` — único por `(resolucion, numeroAnio)`
+- `materia.codigo` — único por año curricular
+- `alumno.dni` y `alumno.email` — únicos globales
+- `correlatividad` — única por `(materia, materiaRequerida, tipo)`
+- `inscripcion` — única por `(alumno, titulo, resolucion)`
+- `cursada` — única por `(inscripcion, materia)`
+
+### Correlatividades
+
+- **No auto-correlación:** una materia no puede ser correlativa de sí misma.
+- **Misma resolución:** ambas materias deben pertenecer a la misma resolución.
+- **Sin ciclos:** si A→B existe, no se puede crear B→A.
+- **Sin duplicados:** la misma combinación no se puede repetir.
+- **Validación al registrar cursadas:**
+  - `PARA_CURSAR` → la correlativa debe estar `REGULAR` o `APROBADA`.
+  - `PARA_RENDIR_FINAL` → la correlativa debe estar `APROBADA`.
+
+### Admisión de alumnos
+
+| Caso | Requisitos | Puede inscribirse |
+|---|---|---|
+| Menor de 25 con secundario completo | Partida + Analítico completo | Sí |
+| Mayor de 25 con secundario completo | Partida + Analítico completo | Sí |
+| Mayor de 25 sin secundario completo + examen aprobado | Partida + Analítico incompleto + Cert. 7º + Examen APROBADO | Sí |
+| Mayor de 25 sin secundario completo sin examen | Falta examen aprobado | No |
+
+### Inscripciones
+
+- **Validación de admisión previa.** El alumno debe cumplir los requisitos.
+- **Resolución vigente automática.** El cliente NO manda la resolución.
+- **Sin duplicados.** No se puede inscribir dos veces al mismo título con la misma resolución.
+- **Cambio de carrera:** se puede tener múltiples inscripciones al mismo título si son con resoluciones distintas.
+
+### Máquina de estados de cursada
+
+```
+EN_CURSO ------> REGULAR ------> APROBADA (final)
+    |                |
+    +--> LIBRE       +--> DESAPROBADA
+    |
+    +--> DESAPROBADA
+
+LIBRE / DESAPROBADA ------> EN_CURSO (recursada)
+```
+
+### Equivalencias y cambio de carrera
+
+- **Solo se transfieren materias APROBADA.** Las regulares no.
+- **Solo si hay una equivalencia definida** entre la materia origen y destino.
+- **Al cambiar de carrera:**
+  - Se crea una nueva inscripción con `esCambioCarrera: true`.
+  - Se aplican las equivalencias automáticamente (cursadas con `esEquivalencia: true`).
+  - Se da de baja la inscripción origen (opcional).
 
 ---
 
 ## Modelo de datos
 
-El schema completo está en `prisma/schema.prisma`. Tiene 10 entidades y 8 enums. Las decisiones de diseño más importantes:
+El schema completo está en `prisma/schema.prisma`. Tiene **12 modelos** y **9 enums**.
 
-- **`ANIO_CURRICULAR` y `MATERIA` cuelgan de `RESOLUCION`**, no de `TITULO`. Esto permite que cada versión de la currícula tenga su propio set de años y materias sin afectar a versiones anteriores.
-- **`CORRELATIVIDAD` es una tabla que referencia dos veces a `MATERIA`** (`materia_id` y `materia_requerida_id`), representando el requisito de una materia sobre otra.
-- **Todos los IDs son UUID**, lo que permite generar registros en distintas partes del sistema sin colisiones.
-- **Los `onDelete` están pensados para preservar datos históricos:** por ejemplo, no se puede borrar un título si tiene inscripciones asociadas (RESTRICT), pero sí se puede borrar una resolución y se llevan en cascada sus años y materias.
+### Modelos
+
+- `Titulo` — carreras ofrecidas
+- `Resolucion` — versiones de la currícula
+- `AnioCurricular` — años de cada resolución
+- `Materia` — unidades curriculares
+- `Correlatividad` — requisitos entre materias
+- `Equivalencia` — pares de materias equivalentes entre carreras
+- `Alumno` — estudiantes (con domicilio y documentación)
+- `ExamenNivelatorio` — exámenes de admisión
+- `Inscripcion` — vínculo alumno ↔ título ↔ resolución
+- `CursadaMateria` — historial académico por materia
+- `Certificado` — constancias emitidas
+
+### Enums
+
+`estado_titulo`, `estado_resolucion`, `tipo_cursada`, `tipo_correlatividad`, `estado_inscripcion`, `estado_cursada`, `tipo_certificado`, `estado_certificado`, `estado_examen`.
 
 ---
 
@@ -211,33 +339,40 @@ El schema completo está en `prisma/schema.prisma`. Tiene 10 entidades y 8 enums
 
 A partir de PostgreSQL 18, la imagen oficial de Docker cambió la forma en que gestiona el directorio de datos. **El volumen ya no se monta en `/var/lib/postgresql/data`** sino en `/var/lib/postgresql`. Si se usa la ruta vieja, el contenedor entra en un loop de reinicio.
 
-El `docker-compose.yml` ya tiene esto resuelto.
-
 ### Sobre el seeder
 
-El script `prisma/seed.js` es **idempotente**: cada vez que se ejecuta, limpia primero toda la base y después carga los datos. Esto permite iterar sobre los datos de prueba sin generar duplicados ni inconsistencias. Es seguro ejecutarlo múltiples veces.
+El script `prisma/seed.js` es **idempotente**: cada vez que se ejecuta, limpia primero toda la base y después carga los datos. Incluye 5 perfiles de alumno para probar todos los flujos de admisión.
 
 ### Sobre las transacciones
 
-Las operaciones críticas (crear título + resolución, cerrar resolución vigente + crear nueva) usan `prisma.$transaction` para garantizar atomicidad. Si falla cualquier paso, se revierte todo.
+Las operaciones críticas usan `prisma.$transaction` para garantizar atomicidad:
+
+- Crear título + resolución.
+- Cerrar resolución vigente + crear nueva.
+- Cambio de carrera (nueva inscripción + equivalencias + baja origen).
+
+### Sobre el manejo de errores
+
+Todos los errores se manejan centralizadamente con el `errorHandler`:
+
+- `AppError` con código y status HTTP.
+- Errores de Prisma (`P2002`, `P2003`, `P2025`).
+- Errores de Postgres (`23001` — FK RESTRICT).
+- Errores de validación de Zod.
 
 ---
 
 ## Próximos pasos
 
-El plan de desarrollo continúa con:
-
-1. **Fase 2 (resto):** endpoints de edición y baja lógica de títulos, años y materias. Cierre manual de resoluciones.
-2. **Fase 3:** correlatividades (con validación de ciclos).
-3. **Fase 4:** alumnos e inscripciones.
-4. **Fase 5:** cursadas e historia académica (con validación de correlativas).
-5. **Fase 6:** certificados (parciales y de título completo, con generación de PDF).
-6. **Fase 7:** autenticación con JWT y control de roles.
-7. **Fase 8:** tests unitarios e integración + documentación Swagger.
-8. **Fase 9:** despliegue con Dockerfile para el API.
+1. **Fase 6:** Certificados (parciales + título completo + PDF con pdfkit).
+2. **Fase 7:** Autenticación con JWT y control de roles.
+3. **Fase 8:** Tests unitarios e integración + documentación Swagger.
+4. **Fase 9:** Dockerfile del API + despliegue.
 
 ---
 
 ## Sobre este repositorio
 
 Este es el repositorio de trabajo del proyecto. El plan original de implementación (consigna) se conserva en [`CONSIGNA.md`](./CONSIGNA.md) como referencia.
+
+La rama activa es `feature/backend-plataforma-academica`. `main` permanece con el commit inicial hasta que se haga el merge final.

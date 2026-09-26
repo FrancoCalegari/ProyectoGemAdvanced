@@ -56,19 +56,13 @@ enum estado_certificado {
   ANULADO
 }
 
-enum estado_examen {
-  PENDIENTE
-  APROBADO
-  DESAPROBADO
-}
-
 // -------------------------------------------------------------
 // MODELOS
 // -------------------------------------------------------------
 
 model Titulo {
   id            String         @id @default(uuid()) @db.Uuid
-  nombre        String         @unique
+  nombre        String	       @unique
   nivel         String
   duracionAnios Int            @map("duracion_anios")
   estado        estado_titulo  @default(ACTIVO)
@@ -127,8 +121,6 @@ model Materia {
   correlativasParaEsta   Correlatividad[] @relation("MateriaRequisito")
   esCorrelativaDe        Correlatividad[] @relation("MateriaExigida")
   cursadas               CursadaMateria[]
-  equivalenciasOrigen    Equivalencia[]   @relation("EquivalenciaOrigen")
-  equivalenciasDestino   Equivalencia[]   @relation("EquivalenciaDestino")
 
   @@unique([anioCurricularId, codigo])
   @@map("materias")
@@ -147,96 +139,49 @@ model Correlatividad {
   @@map("correlatividades")
 }
 
-model Equivalencia {
-  id               String   @id @default(uuid()) @db.Uuid
-  materiaOrigenId  String   @map("materia_origen_id") @db.Uuid
-  materiaDestinoId String   @map("materia_destino_id") @db.Uuid
-  observaciones    String?  @db.Text
-  createdAt        DateTime @default(now()) @map("created_at")
-
-  materiaOrigen    Materia  @relation("EquivalenciaOrigen", fields: [materiaOrigenId], references: [id], onDelete: Cascade)
-  materiaDestino   Materia  @relation("EquivalenciaDestino", fields: [materiaDestinoId], references: [id], onDelete: Cascade)
-
-  @@unique([materiaOrigenId, materiaDestinoId])
-  @@map("equivalencias")
-}
-
 model Alumno {
-  id                 String   @id @default(uuid()) @db.Uuid
-  dni                String   @unique
-  nombre             String
-  apellido           String
-  email              String   @unique
-  fechaNacimiento    DateTime @map("fecha_nacimiento") @db.Date
-
-  domicilioCalle     String?  @map("domicilio_calle")
-  domicilioNumero    String?  @map("domicilio_numero")
-  domicilioCiudad    String?  @map("domicilio_ciudad")
-  domicilioProvincia String?  @map("domicilio_provincia")
-  domicilioCP        String?  @map("domicilio_cp")
-
-  tienePartidaNacimiento   Boolean @default(false) @map("tiene_partida_nacimiento")
-  tieneAnaliticoSecundario Boolean @default(false) @map("tiene_analitico_secundario")
-  tieneAnaliticoIncompleto Boolean @default(false) @map("tiene_analitico_incompleto")
-  tieneCertificado7mo      Boolean @default(false) @map("tiene_certificado_7mo")
-  tieneCUD                 Boolean @default(false) @map("tiene_cud")
+  id              String        @id @default(uuid()) @db.Uuid
+  dni             String        @unique
+  nombre          String
+  apellido        String
+  email           String        @unique
+  fechaNacimiento DateTime      @map("fecha_nacimiento") @db.Date
 
   inscripciones   Inscripcion[]
   certificados    Certificado[]
-  examenes        ExamenNivelatorio[]
 
   @@map("alumnos")
 }
 
-model ExamenNivelatorio {
-  id            String        @id @default(uuid()) @db.Uuid
-  alumnoId      String        @map("alumno_id") @db.Uuid
-  fecha         DateTime      @db.Date
-  resultado     estado_examen @default(PENDIENTE)
-  nota          Decimal?      @db.Decimal(4, 2)
-  observaciones String?       @db.Text
-  createdAt     DateTime      @default(now()) @map("created_at")
-
-  alumno        Alumno        @relation(fields: [alumnoId], references: [id], onDelete: Cascade)
-
-  @@map("examenes_nivelatorios")
-}
-
 model Inscripcion {
-  id                  String             @id @default(uuid()) @db.Uuid
-  alumnoId            String             @map("alumno_id") @db.Uuid
-  tituloId            String             @map("titulo_id") @db.Uuid
-  resolucionId        String             @map("resolucion_id") @db.Uuid
-  fechaInscripcion    DateTime           @default(now()) @map("fecha_inscripcion") @db.Date
-  estado              estado_inscripcion @default(ACTIVA)
+  id               String             @id @default(uuid()) @db.Uuid
+  alumnoId         String             @map("alumno_id") @db.Uuid
+  tituloId         String             @map("titulo_id") @db.Uuid
+  resolucionId     String             @map("resolucion_id") @db.Uuid
+  fechaInscripcion DateTime           @default(now()) @map("fecha_inscripcion") @db.Date
+  estado           estado_inscripcion @default(ACTIVA)
 
-  esCambioCarrera     Boolean            @default(false) @map("es_cambio_carrera")
-  inscripcionOrigenId String?            @map("inscripcion_origen_id") @db.Uuid
+  alumno           Alumno             @relation(fields: [alumnoId], references: [id], onDelete: Cascade)
+  titulo           Titulo             @relation(fields: [tituloId], references: [id], onDelete: Restrict)
+  resolucion       Resolucion         @relation(fields: [resolucionId], references: [id], onDelete: Restrict)
 
-  alumno              Alumno             @relation(fields: [alumnoId], references: [id], onDelete: Cascade)
-  titulo              Titulo             @relation(fields: [tituloId], references: [id], onDelete: Restrict)
-  resolucion          Resolucion         @relation(fields: [resolucionId], references: [id], onDelete: Restrict)
-  inscripcionOrigen   Inscripcion?       @relation("CambioCarrera", fields: [inscripcionOrigenId], references: [id])
-  inscripcionesHijas  Inscripcion[]      @relation("CambioCarrera")
-
-  cursadas            CursadaMateria[]
+  cursadas         CursadaMateria[]
 
   @@unique([alumnoId, tituloId, resolucionId])
   @@map("inscripciones")
 }
 
 model CursadaMateria {
-  id             String         @id @default(uuid()) @db.Uuid
-  inscripcionId  String         @map("inscripcion_id") @db.Uuid
-  materiaId      String         @map("materia_id") @db.Uuid
-  estado         estado_cursada @default(EN_CURSO)
-  notaCursada    Decimal?       @map("nota_cursada") @db.Decimal(4, 2)
-  notaFinal      Decimal?       @map("nota_final") @db.Decimal(4, 2)
-  fechaEstado    DateTime       @default(now()) @map("fecha_estado") @db.Date
-  esEquivalencia Boolean        @default(false) @map("es_equivalencia")
+  id            String         @id @default(uuid()) @db.Uuid
+  inscripcionId String         @map("inscripcion_id") @db.Uuid
+  materiaId     String         @map("materia_id") @db.Uuid
+  estado        estado_cursada @default(EN_CURSO)
+  notaCursada   Decimal?       @map("nota_cursada") @db.Decimal(4, 2)
+  notaFinal     Decimal?       @map("nota_final") @db.Decimal(4, 2)
+  fechaEstado   DateTime       @default(now()) @map("fecha_estado") @db.Date
 
-  inscripcion    Inscripcion    @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
-  materia        Materia        @relation(fields: [materiaId], references: [id], onDelete: Restrict)
+  inscripcion   Inscripcion    @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+  materia       Materia        @relation(fields: [materiaId], references: [id], onDelete: Restrict)
 
   @@unique([inscripcionId, materiaId])
   @@map("cursada_materia")
