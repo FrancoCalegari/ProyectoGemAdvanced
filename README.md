@@ -423,3 +423,9 @@ Los certificados se generan con **pdfkit**. El PDF incluye encabezado, datos del
 Este es el repositorio de trabajo del proyecto. El plan original de implementación (consigna) se conserva en [`CONSIGNA.md`](./CONSIGNA.md) como referencia.
 
 La rama activa es `feature/backend-plataforma-academica`. `main` permanece con el commit inicial hasta que se haga el merge final.
+
+---
+
+## Documentación técnica
+
+Para entender a fondo el proyecto (arquitectura, decisiones técnicas, reglas de negocio, testing y despliegue), consultar [`DOCUMENTACION.md`](./DOCUMENTACION.md).

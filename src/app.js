@@ -2,8 +2,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
 import prisma from './config/db.js';
+import swaggerSpec from './config/swagger.js';
 
 import { errorHandler, notFound } from './middlewares/index.js';
 
@@ -18,6 +20,8 @@ import authRoutes from './routes/auth.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customSiteTitle: 'Plataforma Academica API' }));
 
 app.use(cors());
 app.use(express.json());
