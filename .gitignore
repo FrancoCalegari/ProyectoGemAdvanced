@@ -49,3 +49,6 @@ __pycache__/
 *.py[cod]
 venv/
 env/
+
+# Backups de schema
+*.backup
