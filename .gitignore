@@ -52,3 +52,7 @@ env/
 
 # Backups de schema
 *.backup
+
+# Archivos de prueba
+*.pdf
+test_*.json
