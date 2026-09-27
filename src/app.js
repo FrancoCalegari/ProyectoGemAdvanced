@@ -13,15 +13,14 @@ import curricularRoutes from './routes/curricular.routes.js';
 import correlatividadRoutes from './routes/correlatividad.routes.js';
 import alumnoRoutes from './routes/alumno.routes.js';
 import inscripcionRoutes from './routes/inscripcion.routes.js';
-import equivalenciaRoutes from './routes/equivalencia.routes.js';
-
+import certificadoRoutes from './routes/certificado.routes.js';
+import authRoutes from './routes/auth.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use('/api', equivalenciaRoutes);
 
 app.get('/health', async (req, res) => {
   try {
@@ -33,6 +32,8 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/api', correlatividadRoutes);
+app.use('/api/certificados', certificadoRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/titulos', tituloRoutes);
 app.use('/api/resoluciones', resolucionRoutes);
 app.use('/api/curricular', curricularRoutes);

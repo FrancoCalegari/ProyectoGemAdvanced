@@ -4,6 +4,7 @@ import { AdmisionController } from '../controllers/admision.controller.js';
 import { InscripcionController } from '../controllers/inscripcion.controller.js';
 import { CambioCarreraController } from '../controllers/cambioCarrera.controller.js';
 import { CursadaController } from '../controllers/cursada.controller.js';
+import { CertificadoController } from '../controllers/certificado.controller.js';
 
 const router = Router();
 
@@ -26,5 +27,8 @@ router.post('/:id/cambio-carrera', CambioCarreraController.cambiar);
 
 router.post('/:id/cursadas', CursadaController.registrar);
 router.get('/:id/historia-academica', CursadaController.historiaAcademica);
+
+router.get('/:id/certificados', CertificadoController.listarPorAlumno);
+router.post('/:id/certificados', CertificadoController.solicitar);
 
 export default router;

@@ -8,7 +8,7 @@ La idea central es simple pero poderosa: cuando una institución cambia el plan 
 
 ## Estado actual del proyecto
 
-El proyecto está en construcción activa. Actualmente las **Fases 0 a 5** del plan están completas:
+El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del plan están completas:
 
 | Fase | Descripción | Estado |
 |---|---|---|
@@ -18,9 +18,9 @@ El proyecto está en construcción activa. Actualmente las **Fases 0 a 5** del p
 | 3 | Correlatividades | Completada |
 | 4 | Alumnos, Admisión, Inscripciones, Equivalencias | Completada |
 | 5 | Cursadas e Historia Académica | Completada |
-| 6 | Certificados (parciales y de título completo) | En desarrollo |
-| 7 | Autenticación y Roles | Pendiente |
-| 8 | Testing y Documentación (Swagger) | Pendiente |
+| 6 | Certificados (parciales y de título completo) | Completada |
+| 7 | Autenticación y Roles | Completada |
+| 8 | Testing y Documentación (Swagger) | En desarrollo |
 | 9 | Despliegue | Pendiente |
 
 ---
@@ -35,7 +35,8 @@ El proyecto está en construcción activa. Actualmente las **Fases 0 a 5** del p
 | ORM | Prisma 5 |
 | Contenerización | Docker + docker-compose |
 | Validación | Zod (integración en curso) |
-| Generación de PDF | pdfkit (pendiente) |
+| Generación de PDF | pdfkit |
+| Autenticación | JWT (jsonwebtoken + bcrypt) |
 
 Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en el plan, por ser la versión estable más reciente al momento de arrancar. Esto implicó un ajuste en la configuración del volumen del contenedor (ver sección "Notas técnicas").
 
@@ -46,20 +47,22 @@ Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en 
 ```
 ProyectoGemAdvanced/
 ├── prisma/
-│   ├── schema.prisma              # Modelo de datos completo (12 modelos, 9 enums)
-│   ├── seed.js                    # Carga de datos de prueba (5 títulos, 20 alumnos)
+│   ├── schema.prisma              # Modelo de datos completo (13 modelos, 10 enums)
+│   ├── seed.js                    # Carga de datos de prueba
 │   └── migrations/                # Migraciones versionadas
 ├── src/
 │   ├── config/
 │   │   └── db.js                  # Cliente Prisma
-│   ├── controllers/               # Handlers HTTP (9 controllers)
+│   ├── controllers/               # Handlers HTTP (11 controllers)
 │   ├── middlewares/
-│   │   └── index.js               # errorHandler, validate, notFound
-│   ├── routes/                    # Definición de rutas (6 routers)
-│   ├── services/                  # Lógica de negocio (9 services)
+│   │   ├── index.js               # errorHandler, validate, notFound
+│   │   └── auth.js                # requireAuth, requireRole
+│   ├── routes/                    # Definición de rutas (9 routers)
+│   ├── services/                  # Lógica de negocio (10 services)
 │   ├── utils/
 │   │   ├── errors.js              # AppError + códigos de error
-│   │   └── helpers.js             # Utilidades
+│   │   ├── helpers.js             # Utilidades
+│   │   └── pdf.js                 # Generador de PDF de certificados
 │   ├── validators/                # (vacío, se llena con Zod)
 │   └── app.js                     # Bootstrap de Express
 ├── docker-compose.yml             # PostgreSQL 18 en puerto 5434
@@ -108,7 +111,7 @@ npm install
 cp .env.example .env
 ```
 
-El `.env.example` ya viene con valores por defecto funcionales para desarrollo local.
+Editar `.env` con las credenciales reales (ver `.env.example`).
 
 ### Paso 5 — Aplicar migraciones y cargar datos
 
@@ -129,6 +132,7 @@ El seeder carga automáticamente:
 - Cursadas con estados variados
 - Certificados de ejemplo
 - 2 equivalencias entre carreras
+- 22 usuarios (admin + secretaria + 20 alumnos)
 
 ### Paso 6 — Levantar el servidor
 
@@ -154,6 +158,14 @@ curl http://localhost:3000/health
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/health` | Estado del servidor y conexión a DB |
+
+### Autenticación
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/api/auth/login` | Login, devuelve JWT |
+| POST | `/api/auth/register` | Alta de usuario (solo admin) |
+| GET | `/api/auth/me` | Datos del usuario autenticado |
 
 ### Títulos
 
@@ -190,7 +202,7 @@ curl http://localhost:3000/health
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/api/materias/:id/correlativas` | Listar correlativas de una materia |
-| POST | `/api/materias/:id/correlativas` | Agregar correlativa (valida ciclos, misma resolución, no auto-correlación) |
+| POST | `/api/materias/:id/correlativas` | Agregar correlativa |
 | DELETE | `/api/correlatividades/:id` | Eliminar correlativa |
 
 ### Alumnos
@@ -217,7 +229,7 @@ curl http://localhost:3000/health
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/api/alumnos/:id/inscripciones` | Historial de inscripciones |
-| POST | `/api/alumnos/:id/inscripciones` | Inscribir a un título (valida admisión + toma resolución vigente) |
+| POST | `/api/alumnos/:id/inscripciones` | Inscribir a un título |
 | PUT | `/api/inscripciones/:id` | Cambiar estado (ACTIVA/EGRESADO/BAJA) |
 | GET | `/api/inscripciones/:id/cursadas` | Listar cursadas de una inscripción |
 
@@ -229,7 +241,7 @@ curl http://localhost:3000/health
 | POST | `/api/equivalencias` | Crear equivalencia |
 | DELETE | `/api/equivalencias/:id` | Eliminar equivalencia |
 | GET | `/api/materias/:id/equivalencias` | Equivalencias de una materia |
-| POST | `/api/alumnos/:id/cambio-carrera` | Cambiar de carrera (aplica equivalencias automáticamente) |
+| POST | `/api/alumnos/:id/cambio-carrera` | Cambiar de carrera |
 
 ### Cursadas e Historia Académica
 
@@ -237,6 +249,16 @@ curl http://localhost:3000/health
 |---|---|---|
 | POST | `/api/alumnos/:id/cursadas` | Registrar/actualizar estado de una materia |
 | GET | `/api/alumnos/:id/historia-academica` | Recorrido académico completo con % de avance |
+
+### Certificados
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/api/alumnos/:id/certificados` | Solicitar certificado (PARCIAL_ANIO o TITULO_COMPLETO) |
+| GET | `/api/alumnos/:id/certificados` | Listar certificados del alumno |
+| GET | `/api/certificados/:id` | Detalle de un certificado |
+| GET | `/api/certificados/:id/pdf` | Descargar PDF del certificado |
+| PUT | `/api/certificados/:id/anular` | Anular certificado |
 
 ---
 
@@ -246,7 +268,7 @@ curl http://localhost:3000/health
 
 - **Un título siempre nace con una resolución vigente.** Transacción atómica.
 - **Al crear una nueva resolución, la anterior se cierra automáticamente.**
-- **Las resoluciones cerradas son inmutables.** No se editan ni se borran.
+- **Las resoluciones cerradas son inmutables.**
 - **Los alumnos quedan atados a la resolución vigente al momento de inscribirse.**
 
 ### Validaciones de unicidad
@@ -259,13 +281,15 @@ curl http://localhost:3000/health
 - `correlatividad` — única por `(materia, materiaRequerida, tipo)`
 - `inscripcion` — única por `(alumno, titulo, resolucion)`
 - `cursada` — única por `(inscripcion, materia)`
+- `usuario.email` — único global
+- `usuario.alumnoId` — único (un alumno tiene un solo usuario)
 
 ### Correlatividades
 
-- **No auto-correlación:** una materia no puede ser correlativa de sí misma.
-- **Misma resolución:** ambas materias deben pertenecer a la misma resolución.
-- **Sin ciclos:** si A→B existe, no se puede crear B→A.
-- **Sin duplicados:** la misma combinación no se puede repetir.
+- **No auto-correlación.** Una materia no puede ser correlativa de sí misma.
+- **Misma resolución.** Ambas materias deben pertenecer a la misma resolución.
+- **Sin ciclos.** Si A→B existe, no se puede crear B→A.
+- **Sin duplicados.**
 - **Validación al registrar cursadas:**
   - `PARA_CURSAR` → la correlativa debe estar `REGULAR` o `APROBADA`.
   - `PARA_RENDIR_FINAL` → la correlativa debe estar `APROBADA`.
@@ -276,15 +300,14 @@ curl http://localhost:3000/health
 |---|---|---|
 | Menor de 25 con secundario completo | Partida + Analítico completo | Sí |
 | Mayor de 25 con secundario completo | Partida + Analítico completo | Sí |
-| Mayor de 25 sin secundario completo + examen aprobado | Partida + Analítico incompleto + Cert. 7º + Examen APROBADO | Sí |
-| Mayor de 25 sin secundario completo sin examen | Falta examen aprobado | No |
+| Mayor de 25 sin secundario + examen aprobado | Partida + Analítico incompleto + Cert. 7º + Examen APROBADO | Sí |
+| Mayor de 25 sin secundario sin examen | Falta examen aprobado | No |
 
 ### Inscripciones
 
-- **Validación de admisión previa.** El alumno debe cumplir los requisitos.
+- **Validación de admisión previa.**
 - **Resolución vigente automática.** El cliente NO manda la resolución.
 - **Sin duplicados.** No se puede inscribir dos veces al mismo título con la misma resolución.
-- **Cambio de carrera:** se puede tener múltiples inscripciones al mismo título si son con resoluciones distintas.
 
 ### Máquina de estados de cursada
 
@@ -298,20 +321,34 @@ EN_CURSO ------> REGULAR ------> APROBADA (final)
 LIBRE / DESAPROBADA ------> EN_CURSO (recursada)
 ```
 
-### Equivalencias y cambio de carrera
+### Certificados
 
-- **Solo se transfieren materias APROBADA.** Las regulares no.
-- **Solo si hay una equivalencia definida** entre la materia origen y destino.
-- **Al cambiar de carrera:**
-  - Se crea una nueva inscripción con `esCambioCarrera: true`.
-  - Se aplican las equivalencias automáticamente (cursadas con `esEquivalencia: true`).
-  - Se da de baja la inscripción origen (opcional).
+- **Certificado PARCIAL_ANIO:** 100% de materias del año en `APROBADA`.
+- **Certificado TITULO_COMPLETO:** 100% de materias de la resolución en `APROBADA`.
+- **Si faltan materias:** error 409 con el listado de las pendientes.
+- **PDF:** generado con pdfkit. Marca de agua "ANULADO" si está anulado.
+
+### Autenticación y roles
+
+- **JWT** con payload `{ sub, email, rol, alumnoId }`.
+- **Contraseñas hasheadas con bcrypt** (10 rounds).
+- **Roles:** ADMIN, SECRETARIA, ALUMNO.
+- **Middleware `requireAuth`:** valida el token.
+- **Middleware `requireRole([...])`:** valida el rol.
+
+**Usuarios del seeder:**
+
+| Email | Password | Rol |
+|---|---|---|
+| `admin@plataforma.edu.ar` | `admin123` | ADMIN |
+| `secretaria@plataforma.edu.ar` | `secretaria123` | SECRETARIA |
+| `alumno0@plataforma.edu.ar` a `alumno19@plataforma.edu.ar` | `alumno123` | ALUMNO |
 
 ---
 
 ## Modelo de datos
 
-El schema completo está en `prisma/schema.prisma`. Tiene **12 modelos** y **9 enums**.
+El schema completo está en `prisma/schema.prisma`. Tiene **13 modelos** y **10 enums**.
 
 ### Modelos
 
@@ -326,10 +363,11 @@ El schema completo está en `prisma/schema.prisma`. Tiene **12 modelos** y **9 e
 - `Inscripcion` — vínculo alumno ↔ título ↔ resolución
 - `CursadaMateria` — historial académico por materia
 - `Certificado` — constancias emitidas
+- `Usuario` — usuarios del sistema (auth)
 
 ### Enums
 
-`estado_titulo`, `estado_resolucion`, `tipo_cursada`, `tipo_correlatividad`, `estado_inscripcion`, `estado_cursada`, `tipo_certificado`, `estado_certificado`, `estado_examen`.
+`estado_titulo`, `estado_resolucion`, `tipo_cursada`, `tipo_correlatividad`, `estado_inscripcion`, `estado_cursada`, `tipo_certificado`, `estado_certificado`, `estado_examen`, `rol_usuario`.
 
 ---
 
@@ -341,7 +379,7 @@ A partir de PostgreSQL 18, la imagen oficial de Docker cambió la forma en que g
 
 ### Sobre el seeder
 
-El script `prisma/seed.js` es **idempotente**: cada vez que se ejecuta, limpia primero toda la base y después carga los datos. Incluye 5 perfiles de alumno para probar todos los flujos de admisión.
+El script `prisma/seed.js` es **idempotente**: cada vez que se ejecuta, limpia primero toda la base y después carga los datos. Incluye 5 perfiles de alumno para probar todos los flujos de admisión, y crea 22 usuarios (admin + secretaria + 20 alumnos).
 
 ### Sobre las transacciones
 
@@ -360,14 +398,23 @@ Todos los errores se manejan centralizadamente con el `errorHandler`:
 - Errores de Postgres (`23001` — FK RESTRICT).
 - Errores de validación de Zod.
 
+### Sobre los certificados
+
+Los certificados se generan con **pdfkit**. El PDF incluye encabezado, datos del alumno, título, resolución, materias aprobadas, fecha y espacio para firma. Si el certificado está **anulado**, se agrega una marca de agua roja "ANULADO" en diagonal.
+
+### Sobre la autenticación
+
+- **JWT** con `jsonwebtoken`. Payload: `{ sub, email, rol, alumnoId }`.
+- **Contraseñas hasheadas** con `bcrypt` (10 rounds).
+- **Roles:** ADMIN, SECRETARIA, ALUMNO.
+- **Middlewares:** `requireAuth` (valida token), `requireRole([...])` (valida rol).
+
 ---
 
 ## Próximos pasos
 
-1. **Fase 6:** Certificados (parciales + título completo + PDF con pdfkit).
-2. **Fase 7:** Autenticación con JWT y control de roles.
-3. **Fase 8:** Tests unitarios e integración + documentación Swagger.
-4. **Fase 9:** Dockerfile del API + despliegue.
+1. **Fase 8:** Tests unitarios e integración + documentación Swagger.
+2. **Fase 9:** Dockerfile del API + despliegue.
 
 ---
 

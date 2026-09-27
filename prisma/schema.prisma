@@ -62,6 +62,12 @@ enum estado_examen {
   DESAPROBADO
 }
 
+enum rol_usuario {
+  ADMIN
+  SECRETARIA
+  ALUMNO
+}
+
 // -------------------------------------------------------------
 // MODELOS
 // -------------------------------------------------------------
@@ -184,6 +190,7 @@ model Alumno {
   inscripciones   Inscripcion[]
   certificados    Certificado[]
   examenes        ExamenNivelatorio[]
+  usuario         Usuario?
 
   @@map("alumnos")
 }
@@ -258,4 +265,20 @@ model Certificado {
   anioCurricular   AnioCurricular?    @relation(fields: [anioCurricularId], references: [id], onDelete: SetNull)
 
   @@map("certificados")
+}
+
+model Usuario {
+  id           String      @id @default(uuid()) @db.Uuid
+  email        String      @unique
+  passwordHash String      @map("password_hash")
+  nombre       String
+  apellido     String
+  rol          rol_usuario @default(ALUMNO)
+  activo       Boolean     @default(true)
+  alumnoId     String?     @unique @map("alumno_id") @db.Uuid
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  alumno       Alumno?     @relation(fields: [alumnoId], references: [id], onDelete: SetNull)
+
+  @@map("usuarios")
 }
