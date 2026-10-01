@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 # .gitignore — ProyectoGemAdvanced
 # ============================================================
 
@@ -56,3 +56,43 @@ env/
 # Archivos de prueba
 *.pdf
 test_*.json
+
+# ============================================================
+# Reglas agregadas — limpieza de backups y temporales
+# ============================================================
+
+# Carpeta completa de backups del proyecto
+backups/
+
+# Backups de Prisma con sufijos (b1, b2, m1, ...)
+*.backup-*
+prisma/*.backup
+prisma/*.backup-*
+prisma/seed.js.backup
+
+# Backups de otros archivos de config
+*.bak.*
+*~.backup
+
+# Archivos temporales del proyecto
+*.tmp.js
+*.old.js
+
+# Frontend (por ahora NO se sube)
+# frontend/   <-- descomentar si querés ignorarlo entero
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+
+# .env de backups
+backups/**/.env
+backups/**/.env.*
+
+# Editor y OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+frontend/
