@@ -8,20 +8,40 @@ La idea central es simple pero poderosa: cuando una institución cambia el plan 
 
 ## Estado actual del proyecto
 
-El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del plan están completas:
+El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del plan están completas, más un conjunto de **módulos nuevos (M1-M7)** que agregan Profesores, Licencias, Solicitudes y Clases Suspendidas.
+
+### Fases del plan original
 
 | Fase | Descripción | Estado |
 |---|---|---|
-| 0 | Setup inicial (Docker, Express, DB) | Completada |
-| 1 | Modelo de datos (Prisma) | Completada |
-| 2 | Títulos, Resoluciones, Años y Materias | Completada |
-| 3 | Correlatividades | Completada |
-| 4 | Alumnos, Admisión, Inscripciones, Equivalencias | Completada |
-| 5 | Cursadas e Historia Académica | Completada |
-| 6 | Certificados (parciales y de título completo) | Completada |
-| 7 | Autenticación y Roles | Completada |
-| 8 | Testing y Documentación (Swagger) | En desarrollo |
-| 9 | Despliegue | Pendiente |
+| 0 | Setup inicial (Docker, Express, DB) | ✅ Completada |
+| 1 | Modelo de datos (Prisma) | ✅ Completada |
+| 2 | Títulos, Resoluciones, Años y Materias | ✅ Completada |
+| 3 | Correlatividades | ✅ Completada |
+| 4 | Alumnos, Admisión, Inscripciones, Equivalencias | ✅ Completada |
+| 5 | Cursadas e Historia Académica | ✅ Completada |
+| 6 | Certificados (parciales y de título completo) | ✅ Completada |
+| 7 | Autenticación y Roles | ✅ Completada |
+| 8 | Testing y Documentación (Swagger) | 🔄 En desarrollo |
+| 9 | Despliegue | ⏳ Pendiente |
+
+### Módulos nuevos (M1-M7)
+
+| Etapa | Descripción | Estado |
+|---|---|---|
+| M1 | Schema: Profesor, Licencia, Solicitud, TituloProfesor | ✅ Completada |
+| M2 | Backend Profesores (CRUD + títulos + materias asignadas) | ✅ Completada |
+| M2.5 | Auth + matriz de permisos por rol (`requireSelfOrRole`) | ✅ Completada |
+| M3 | Backend Licencias (CRUD + aprobar/rechazar) | ✅ Completada |
+| M3.5 | Clases Suspendidas + Reasignación | ✅ Completada |
+| M4 | Backend Solicitudes (alumno/profesor crean, admin resuelve) | ✅ Completada |
+| M5 | Examen nivelatorio con flujo condicional | ✅ Completada |
+| M6 | Mesa "Ingreso Art. N° X" con tipoMesa | ✅ Completada |
+| M7 | Frontend Profesores (en construcción) | 🔄 En desarrollo |
+| M8 | Panel personal (autogestión por rol) | ⏳ Pendiente |
+| M9 | Estadísticas | ⏳ Pendiente |
+| M10 | Dashboard completo | ⏳ Pendiente |
+| M11 | Backup + documentación final | ⏳ Pendiente |
 
 ---
 
@@ -34,9 +54,10 @@ El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del p
 | Base de datos | PostgreSQL 18 (Docker) |
 | ORM | Prisma 5 |
 | Contenerización | Docker + docker-compose |
-| Validación | Zod (integración en curso) |
+| Validación | Zod |
 | Generación de PDF | pdfkit |
 | Autenticación | JWT (jsonwebtoken + bcrypt) |
+| Testing | Jest |
 
 Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en el plan, por ser la versión estable más reciente al momento de arrancar. Esto implicó un ajuste en la configuración del volumen del contenedor (ver sección "Notas técnicas").
 
@@ -47,26 +68,33 @@ Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en 
 ```
 ProyectoGemAdvanced/
 ├── prisma/
-│   ├── schema.prisma              # Modelo de datos completo (13 modelos, 10 enums)
+│   ├── schema.prisma              # Modelo de datos completo (19 modelos, 15 enums)
 │   ├── seed.js                    # Carga de datos de prueba
 │   └── migrations/                # Migraciones versionadas
 ├── src/
 │   ├── config/
 │   │   └── db.js                  # Cliente Prisma
-│   ├── controllers/               # Handlers HTTP (11 controllers)
+│   ├── controllers/               # Handlers HTTP (18 controllers)
 │   ├── middlewares/
 │   │   ├── index.js               # errorHandler, validate, notFound
-│   │   └── auth.js                # requireAuth, requireRole
-│   ├── routes/                    # Definición de rutas (9 routers)
-│   ├── services/                  # Lógica de negocio (10 services)
+│   │   └── auth.js                # requireAuth, requireRole, requireSelfOrRole
+│   ├── routes/                    # Definición de rutas (16 routers)
+│   ├── services/                  # Lógica de negocio (17 services)
 │   ├── utils/
 │   │   ├── errors.js              # AppError + códigos de error
 │   │   ├── helpers.js             # Utilidades
 │   │   └── pdf.js                 # Generador de PDF de certificados
-│   ├── validators/                # (vacío, se llena con Zod)
 │   └── app.js                     # Bootstrap de Express
-├── docker-compose.yml             # PostgreSQL 18 en puerto 5434
+├── tests/
+│   └── unit/                      # Tests unitarios (Jest)
+├── frontend/                      # Frontend React (en desarrollo)
+├── docker-compose.yml             # Stack completo (PostgreSQL + API)
+├── docker/
+│   └── Dockerfile                 # Imagen del API
 ├── .env.example
+├── .dockerignore
+├── .gitignore
+├── jest.config.js
 ├── api_tests.http                 # Colección de requests
 ├── package.json
 ├── README.md
@@ -163,8 +191,8 @@ curl http://localhost:3000/health
 
 | Método | Endpoint | Descripción |
 |---|---|---|
-| POST | `/api/auth/login` | Login, devuelve JWT |
-| POST | `/api/auth/register` | Alta de usuario (solo admin) |
+| POST | `/api/auth/login` | Login, devuelve JWT (con `rol`, `alumnoId`, `profesorId`) |
+| POST | `/api/auth/register` | Alta de usuario (solo ADMIN) — soporta ADMIN, SECRETARIA, ALUMNO, PROFESOR |
 | GET | `/api/auth/me` | Datos del usuario autenticado |
 
 ### Títulos
@@ -192,6 +220,8 @@ curl http://localhost:3000/health
 |---|---|---|
 | POST | `/api/curricular/resoluciones/:resolucionId/anios` | Crear año curricular |
 | GET | `/api/curricular/resoluciones/:resolucionId/plan` | Plan completo de una resolución |
+| GET | `/api/curricular/materias` | **Todas las materias** (para selects) |
+| GET | `/api/curricular/aulas` | **Aulas disponibles** |
 | POST | `/api/curricular/anios/:anioId/materias` | Crear materia |
 | GET | `/api/curricular/anios/:id/materias` | Listar materias de un año |
 | PUT | `/api/curricular/materias/:id` | Editar materia |
@@ -221,7 +251,7 @@ curl http://localhost:3000/health
 |---|---|---|
 | GET | `/api/alumnos/:id/admision` | Estado de admisión (documentación + examen) |
 | GET | `/api/alumnos/:id/examenes` | Listar exámenes nivelatorios |
-| POST | `/api/alumnos/:id/examenes` | Registrar examen |
+| POST | `/api/alumnos/:id/examenes` | Registrar examen (flujo condicional) |
 | PUT | `/api/alumnos/:id/examenes/:examenId` | Actualizar resultado |
 
 ### Inscripciones
@@ -259,6 +289,122 @@ curl http://localhost:3000/health
 | GET | `/api/certificados/:id` | Detalle de un certificado |
 | GET | `/api/certificados/:id/pdf` | Descargar PDF del certificado |
 | PUT | `/api/certificados/:id/anular` | Anular certificado |
+
+### Profesores
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/profesores` | Listar (ADMIN, SECRETARIA) |
+| POST | `/api/profesores` | Crear (ADMIN) — requiere títulos |
+| GET | `/api/profesores/:id` | Detalle (ADMIN, SECRETARIA o el propio profesor) |
+| PUT | `/api/profesores/:id` | Actualizar (ADMIN o el propio profesor) |
+| DELETE | `/api/profesores/:id` | Eliminar (ADMIN) |
+| POST | `/api/profesores/:id/titulos` | Agregar título |
+| DELETE | `/api/profesores/:id/titulos/:tituloId` | Eliminar título |
+| POST | `/api/profesores/:id/materias` | Asignar materia + día + hora + aula |
+| DELETE | `/api/profesores/:id/materias/:mpId` | Desasignar materia |
+| GET | `/api/profesores/me/materias` | Mis materias (PROFESOR logueado) |
+
+### Licencias
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/licencias` | Listar (ADMIN, SECRETARIA) |
+| GET | `/api/licencias/me` | Mis licencias (PROFESOR) |
+| POST | `/api/licencias` | Crear (PROFESOR, ADMIN) |
+| GET | `/api/licencias/:id` | Detalle |
+| PUT | `/api/licencias/:id` | Editar (solo PENDIENTE) |
+| DELETE | `/api/licencias/:id` | Eliminar (solo PENDIENTE) |
+| PATCH | `/api/licencias/:id/aprobar` | Aprobar — genera clases suspendidas automáticamente |
+| PATCH | `/api/licencias/:id/rechazar` | Rechazar |
+| GET | `/api/licencias/profesor/:profesorId` | Licencias de un profesor |
+
+**Tipos de licencia:** `ENFERMEDAD`, `RAZON_PARTICULAR`, `ESTUDIOS_FEMENINOS` (solo género F), `DONACION_SANGRE`, `ACCIDENTE_LABORAL`, `OTRO`.
+
+**Granularidad:** `todoElDia=true` | `horaDesde`+`horaHasta` | `turno` (MANANA/TARDE/NOCHE).
+
+### Clases Suspendidas
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/clases-suspendidas` | Listar (con filtros) |
+| GET | `/api/clases-suspendidas/resumen` | Resumen por rango de fechas |
+| POST | `/api/clases-suspendidas` | Crear manual (feriado, paro, clima) |
+| GET | `/api/clases-suspendidas/:id` | Detalle |
+| DELETE | `/api/clases-suspendidas/:id` | Eliminar |
+| POST | `/api/clases-suspendidas/:id/reasignar` | Reasignar a otro profesor |
+| DELETE | `/api/clases-suspendidas/:id/reasignar/:reasignacionId` | Eliminar reasignación |
+
+### Solicitudes
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/solicitudes` | Listar (ADMIN, SECRETARIA) |
+| GET | `/api/solicitudes/me` | Mis solicitudes (ALUMNO, PROFESOR) |
+| POST | `/api/solicitudes` | Crear |
+| GET | `/api/solicitudes/:id` | Detalle |
+| PUT | `/api/solicitudes/:id` | Editar (solo PENDIENTE) |
+| DELETE | `/api/solicitudes/:id` | Eliminar (solo PENDIENTE) |
+| PATCH | `/api/solicitudes/:id/aprobar` | Aprobar (ADMIN, SECRETARIA) |
+| PATCH | `/api/solicitudes/:id/rechazar` | Rechazar |
+| GET | `/api/solicitudes/alumno/:alumnoId` | Solicitudes de un alumno |
+| GET | `/api/solicitudes/profesor/:profesorId` | Solicitudes de un profesor |
+
+**Tipos:** `CAMBIO_HORARIO`, `AUSENCIA_PROGRAMADA`, `CAMBIO_MATERIA`, `OTRO`.
+
+### Mesas de Examen
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/mesas` | Listar (filtro `?tipoMesa=EXAMEN_FINAL\|INGRESO_NIVELATORIO`) |
+| POST | `/api/mesas` | Crear mesa |
+| GET | `/api/mesas/:id` | Detalle con inscripciones |
+| PUT | `/api/mesas/:id/estado` | Cambiar estado |
+| GET | `/api/mesas/:id/inscripciones` | Inscripciones |
+| POST | `/api/mesas/:id/inscribir` | Inscribirse (valida que la materia sea de tu carrera) |
+| DELETE | `/api/mesas/:id/inscribir` | Cancelar inscripción |
+| PUT | `/api/mesas/:id/inscripciones/:alumnoId/asistencia` | Registrar asistencia + nota |
+| GET | `/api/alumnos/:id/mesas-disponibles` | Mesas disponibles para un alumno |
+
+**Tipos de mesa:** `EXAMEN_FINAL` (materia obligatoria) | `INGRESO_NIVELATORIO` (sin materia, vinculada a un examen nivelatorio).
+
+### Asistencia
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/api/cursadas/:cursadaId/asistencias` | Registrar/actualizar asistencia |
+| POST | `/api/cursadas/:cursadaId/asistencias/masivo` | Carga masiva |
+| GET | `/api/cursadas/:cursadaId/asistencias` | Listar asistencias |
+| GET | `/api/cursadas/:cursadaId/asistencias/resumen` | Resumen (presentes, ausentes, %) |
+
+### Certificados Presentados
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/certificados-presentados` | Listar |
+| POST | `/api/certificados-presentados` | Presentar certificado |
+| PUT | `/api/certificados-presentados/:id/aprobar` | Aprobar (ADMIN) |
+| PUT | `/api/certificados-presentados/:id/rechazar` | Rechazar (ADMIN) |
+
+### Usuarios
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/usuarios` | Listar (ADMIN) |
+| POST | `/api/usuarios` | Crear (ADMIN) |
+| PUT | `/api/usuarios/:id` | Editar (ADMIN) |
+| DELETE | `/api/usuarios/:id` | Eliminar (ADMIN) |
+
+---
+
+## Roles y permisos
+
+| Rol | Puede |
+|---|---|
+| **ADMIN** | Todo: CRUD completo, aprobar/rechazar licencias y solicitudes, crear usuarios, asignar materias a profesores |
+| **SECRETARIA** | Ver y gestionar alumnos, títulos, cursadas, mesas, certificados. **NO edita** profesores (solo ve). Aprueba/rechaza licencias y solicitudes |
+| **PROFESOR** | Ve y edita **su propio** perfil, sus materias, sus licencias, sus solicitudes. Puede crear solicitudes y licencias |
+| **ALUMNO** | Ve su historia académica, sus certificados, sus mesas. Puede crear solicitudes |
 
 ---
 
@@ -328,13 +474,33 @@ LIBRE / DESAPROBADA ------> EN_CURSO (recursada)
 - **Si faltan materias:** error 409 con el listado de las pendientes.
 - **PDF:** generado con pdfkit. Marca de agua "ANULADO" si está anulado.
 
+### Licencias de profesores
+
+- **Tipos:** enfermedad, razón particular, estudios femeninos (solo género F), donación de sangre, accidente laboral, otro.
+- **Granularidad:** día completo, rango horario (`horaDesde`/`horaHasta`) o turno (`MANANA`/`TARDE`/`NOCHE`).
+- **Al aprobar** → se generan automáticamente las **clases suspendidas** correspondientes (según materias asignadas al profesor y días/horas de la licencia).
+- **Reasignación** → las clases suspendidas se pueden reasignar a otro profesor.
+
+### Flujo del examen nivelatorio
+
+- Se registra con `hora`, `lugar` y `articulo` ("Ingreso Art. N° X").
+- **Si APROBADO** → se crea automáticamente una **mesa de tipo `INGRESO_NIVELATORIO`** con el alumno inscripto como `PRESENTE`.
+- **Si DESAPROBADO** con `nuevaFecha` → se **reprograma automáticamente** otro examen `PENDIENTE`.
+- Todo en transacción atómica.
+
+### Inscripción a mesas
+
+- Solo a mesas de materias **de la carrera del alumno** (valida `Inscripcion` activa en la resolución de la materia).
+- Mínimo **72 horas antes** para inscribirse.
+- Mínimo **48 horas antes** para cancelar.
+- Respeto del **cupo máximo**.
+
 ### Autenticación y roles
 
-- **JWT** con payload `{ sub, email, rol, alumnoId }`.
+- **JWT** con payload `{ sub, email, rol, alumnoId, profesorId }`.
 - **Contraseñas hasheadas con bcrypt** (10 rounds).
-- **Roles:** ADMIN, SECRETARIA, ALUMNO.
-- **Middleware `requireAuth`:** valida el token.
-- **Middleware `requireRole([...])`:** valida el rol.
+- **Roles:** ADMIN, SECRETARIA, ALUMNO, PROFESOR.
+- **Middlewares:** `requireAuth` (valida token), `requireRole([...])` (valida rol), `requireSelfOrRole([...], paramName)` (valida dueño del recurso).
 
 **Usuarios del seeder:**
 
@@ -348,9 +514,9 @@ LIBRE / DESAPROBADA ------> EN_CURSO (recursada)
 
 ## Modelo de datos
 
-El schema completo está en `prisma/schema.prisma`. Tiene **13 modelos** y **10 enums**.
+El schema completo está en `prisma/schema.prisma`. Tiene **19 modelos** y **15 enums**.
 
-### Modelos
+### Modelos académicos
 
 - `Titulo` — carreras ofrecidas
 - `Resolucion` — versiones de la currícula
@@ -358,16 +524,42 @@ El schema completo está en `prisma/schema.prisma`. Tiene **13 modelos** y **10 
 - `Materia` — unidades curriculares
 - `Correlatividad` — requisitos entre materias
 - `Equivalencia` — pares de materias equivalentes entre carreras
+
+### Modelos de alumnos
+
 - `Alumno` — estudiantes (con domicilio y documentación)
-- `ExamenNivelatorio` — exámenes de admisión
+- `ExamenNivelatorio` — exámenes de admisión (con `hora`, `lugar`, `articulo`)
 - `Inscripcion` — vínculo alumno ↔ título ↔ resolución
 - `CursadaMateria` — historial académico por materia
+- `Asistencia` — asistencias por clase y fecha
 - `Certificado` — constancias emitidas
-- `Usuario` — usuarios del sistema (auth)
+- `CertificadoPresentado` — certificados presentados por alumnos
+
+### Modelos de profesores (M1)
+
+- `Profesor` — docentes (con estado ACTIVO/SUPLENCIA/INACTIVO)
+- `TituloProfesor` — títulos habilitantes
+- `MateriaProfesor` — asignaciones (materia + día + hora + aula)
+- `Licencia` — licencias (con granularidad horaria)
+- `Solicitud` — solicitudes de alumnos y profesores
+
+### Modelos de clases (M3.5)
+
+- `ClaseSuspendida` — clases suspendidas (por licencia, feriado, paro, etc.)
+- `Reasignacion` — reasignación de clases suspendidas a otro profesor
+
+### Modelos de mesas
+
+- `MesaExamen` — mesas (`EXAMEN_FINAL` o `INGRESO_NIVELATORIO`)
+- `InscripcionMesa` — inscripciones a mesas
+
+### Auth
+
+- `Usuario` — usuarios del sistema (con `alumnoId` y `profesorId` opcionales)
 
 ### Enums
 
-`estado_titulo`, `estado_resolucion`, `tipo_cursada`, `tipo_correlatividad`, `estado_inscripcion`, `estado_cursada`, `tipo_certificado`, `estado_certificado`, `estado_examen`, `rol_usuario`.
+`estado_titulo`, `estado_resolucion`, `tipo_cursada`, `tipo_correlatividad`, `estado_inscripcion`, `estado_cursada`, `tipo_certificado`, `estado_certificado`, `estado_examen`, `rol_usuario`, `estado_asistencia`, `estado_profesor`, `tipo_licencia`, `estado_licencia`, `tipo_solicitud`, `estado_solicitud`, `tipo_titulo_profesor`, `estado_certificado_presentado`, `tipo_certificado_presentado`, `estado_mesa`, `estado_inscripcion_mesa`, `tipo_mesa`, `motivo_suspension`, `turno_licencia`.
 
 ---
 
@@ -388,6 +580,8 @@ Las operaciones críticas usan `prisma.$transaction` para garantizar atomicidad:
 - Crear título + resolución.
 - Cerrar resolución vigente + crear nueva.
 - Cambio de carrera (nueva inscripción + equivalencias + baja origen).
+- Crear examen nivelatorio + mesa de ingreso.
+- Aprobar licencia + crear clases suspendidas.
 
 ### Sobre el manejo de errores
 
@@ -404,17 +598,50 @@ Los certificados se generan con **pdfkit**. El PDF incluye encabezado, datos del
 
 ### Sobre la autenticación
 
-- **JWT** con `jsonwebtoken`. Payload: `{ sub, email, rol, alumnoId }`.
+- **JWT** con `jsonwebtoken`. Payload: `{ sub, email, rol, alumnoId, profesorId }`.
 - **Contraseñas hasheadas** con `bcrypt` (10 rounds).
-- **Roles:** ADMIN, SECRETARIA, ALUMNO.
-- **Middlewares:** `requireAuth` (valida token), `requireRole([...])` (valida rol).
+- **Roles:** ADMIN, SECRETARIA, ALUMNO, PROFESOR.
+- **Middlewares:** `requireAuth` (valida token), `requireRole([...])` (valida rol), `requireSelfOrRole([...], paramName)` (valida dueño).
+
+---
+
+## Testing
+
+El proyecto tiene tests unitarios con **Jest**. La configuración está en `jest.config.js`.
+
+```bash
+npm test
+```
+
+**Estado actual:** 22 tests pasando (4 suites).
 
 ---
 
 ## Próximos pasos
 
-1. **Fase 8:** Tests unitarios e integración + documentación Swagger.
-2. **Fase 9:** Dockerfile del API + despliegue.
+1. **Frontend completo** (M7-M10):
+   - Página de Profesores (listado + detalle) — en desarrollo
+   - Panel personal por rol (autogestión)
+   - Estadísticas con rango de fechas
+   - Dashboard completo
+2. **Fase 8:** completar tests + documentación Swagger.
+3. **Fase 9:** despliegue.
+
+---
+
+## Deploy con Docker
+
+El proyecto incluye un `docker-compose.yml` que levanta **todo el stack** (base de datos + API) con un solo comando.
+
+### Requisitos
+
+- Docker Desktop corriendo.
+
+### Levantar el stack completo
+
+```bash
+docker compose up -d
+```
 
 ---
 
