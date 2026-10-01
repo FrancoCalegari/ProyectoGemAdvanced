@@ -6,6 +6,8 @@ const router = Router();
 router.post('/resoluciones/:resolucionId/anios', CurricularController.crearAnio);
 router.get('/resoluciones/:resolucionId/plan', CurricularController.obtenerPlan);
 
+router.get('/materias', CurricularController.listarTodasLasMaterias);
+router.get('/aulas', CurricularController.listarAulas);
 router.post('/anios/:anioId/materias', CurricularController.crearMateria);
 router.get('/anios/:id/materias', CurricularController.listarMateriasDeAnio);
 

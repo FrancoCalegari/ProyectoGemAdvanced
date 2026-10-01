@@ -174,4 +174,135 @@ export class AlumnoService {
 
     return await prisma.alumno.delete({ where: { id } });
   }
+  // ----------------------------------------------------------
+  // Listar agrupados por Título → Resolución → Año → Alumnos
+  // ----------------------------------------------------------
+  static async listarAgrupados() {
+    // Traer títulos con sus resoluciones y años
+    const titulos = await prisma.titulo.findMany({
+      where: { estado: 'ACTIVO' },
+      include: {
+        resoluciones: {
+          where: { estado: 'VIGENTE' },
+          include: {
+            aniosCurriculares: {
+              orderBy: { numeroAnio: 'asc' },
+              select: { id: true, numeroAnio: true, nombre: true },
+            },
+          },
+        },
+      },
+      orderBy: { nombre: 'asc' },
+    });
+
+    // Traer todas las inscripciones activas con info del alumno
+    const inscripciones = await prisma.inscripcion.findMany({
+      where: { estado: 'ACTIVA' },
+      include: {
+        alumno: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            dni: true,
+            email: true,
+            fechaNacimiento: true,
+          },
+        },
+        resolucion: { select: { id: true, codigo: true } },
+      },
+      orderBy: [{ alumno: { apellido: 'asc' } }, { alumno: { nombre: 'asc' } }],
+    });
+
+    // Traer todas las cursadas para saber en qué año está cada alumno
+    const inscripcionIds = inscripciones.map((i) => i.id);
+    const cursadas = await prisma.cursadaMateria.findMany({
+      where: { inscripcionId: { in: inscripcionIds } },
+      include: {
+        materia: {
+          select: {
+            anioCurricularId: true,
+            anioCurricular: { select: { numeroAnio: true } },
+          },
+        },
+      },
+    });
+
+    // Determinar el año de cada alumno (el mayor año con cursadas EN_CURSO o REGULAR)
+    const añoPorInscripcion = {};
+    for (const c of cursadas) {
+      const inscId = c.inscripcionId;
+      const numeroAnio = c.materia.anioCurricular.numeroAnio;
+      const estado = c.estado;
+      if (!añoPorInscripcion[inscId]) {
+        añoPorInscripcion[inscId] = { maxEnCurso: 0, maxAprobado: 0 };
+      }
+      if (['EN_CURSO', 'REGULAR'].includes(estado)) {
+        añoPorInscripcion[inscId].maxEnCurso = Math.max(
+          añoPorInscripcion[inscId].maxEnCurso,
+          numeroAnio
+        );
+      }
+      if (estado === 'APROBADA') {
+        añoPorInscripcion[inscId].maxAprobado = Math.max(
+          añoPorInscripcion[inscId].maxAprobado,
+          numeroAnio
+        );
+      }
+    }
+
+    // Armar la estructura: Título → Resolución → Año → Alumnos
+    const resultado = titulos.map((t) => {
+      const resoluciones = t.resoluciones.map((r) => {
+        // Alumnos inscriptos en esta resolución
+        const aluDeRes = inscripciones.filter((i) => i.resolucionId === r.id);
+
+        // Asignar cada alumno a un año curricular
+        const anios = r.aniosCurriculares.map((a) => {
+          const alumnosDelAnio = aluDeRes
+            .filter((i) => {
+              const info = añoPorInscripcion[i.id];
+              if (!info) return a.numeroAnio === 1; // sin cursadas → año 1
+              // El alumno pertenece al año donde tiene cursadas en curso
+              const anioActual = info.maxEnCurso || info.maxAprobado || 1;
+              return anioActual === a.numeroAnio;
+            })
+            .map((i) => ({
+              id: i.alumno.id,
+              nombre: i.alumno.nombre,
+              apellido: i.alumno.apellido,
+              dni: i.alumno.dni,
+              email: i.alumno.email,
+              edad: calcularEdad(i.alumno.fechaNacimiento),
+              inscripcionId: i.id,
+            }));
+
+          return {
+            anioId: a.id,
+            numeroAnio: a.numeroAnio,
+            nombre: a.nombre,
+            totalAlumnos: alumnosDelAnio.length,
+            alumnos: alumnosDelAnio,
+          };
+        });
+
+        return {
+          resolucionId: r.id,
+          codigo: r.codigo,
+          totalAlumnos: aluDeRes.length,
+          anios,
+        };
+      });
+
+      return {
+        tituloId: t.id,
+        nombre: t.nombre,
+        nivel: t.nivel,
+        totalAlumnos: resoluciones.reduce((acc, r) => acc + r.totalAlumnos, 0),
+        resoluciones,
+      };
+    });
+
+    return resultado;
+  }
 }

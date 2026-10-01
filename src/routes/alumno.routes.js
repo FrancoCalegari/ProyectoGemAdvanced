@@ -8,6 +8,7 @@ import { CertificadoController } from '../controllers/certificado.controller.js'
 
 const router = Router();
 
+router.get('/agrupados', AlumnoController.listarAgrupados);
 router.get('/', AlumnoController.listar);
 router.post('/', AlumnoController.crear);
 router.get('/:id', AlumnoController.obtenerPorId);
@@ -28,6 +29,7 @@ router.post('/:id/cambio-carrera', CambioCarreraController.cambiar);
 router.post('/:id/cursadas', CursadaController.registrar);
 router.get('/:id/historia-academica', CursadaController.historiaAcademica);
 
+router.post('/:id/certificados/preview-concurrencia', CertificadoController.previewConcurrencia);
 router.get('/:id/certificados', CertificadoController.listarPorAlumno);
 router.post('/:id/certificados', CertificadoController.solicitar);
 

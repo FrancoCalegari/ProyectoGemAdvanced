@@ -166,4 +166,33 @@ export class CurricularService {
 
     return await prisma.materia.delete({ where: { id } });
   }
+
+  // ============================================================
+  // Listar TODAS las materias con info completa (para selects)
+  // ============================================================
+  static async listarTodasLasMaterias() {
+    return await prisma.materia.findMany({
+      include: {
+        anioCurricular: {
+          select: {
+            id: true,
+            numeroAnio: true,
+            nombre: true,
+            resolucion: {
+              select: {
+                id: true,
+                codigo: true,
+                titulo: { select: { id: true, nombre: true, nivel: true } },
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        { anioCurricular: { resolucion: { titulo: { nombre: 'asc' } } } },
+        { anioCurricular: { numeroAnio: 'asc' } },
+        { nombre: 'asc' },
+      ],
+    });
+  }
 }

@@ -31,6 +31,16 @@ export class CertificadoController {
     }
   }
 
+  static async previewConcurrencia(req, res, next) {
+    try {
+      const { id } = req.params;
+      const preview = await CertificadoService.previewConcurrencia(id, req.body);
+      return res.status(200).json(preview);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async anular(req, res, next) {
     try {
       const { id } = req.params;
@@ -47,10 +57,7 @@ export class CertificadoController {
       const pdfBuffer = await CertificadoService.generarPDF(id);
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="certificado-${id.slice(0, 8)}.pdf"`
-      );
+      res.setHeader('Content-Disposition', `attachment; filename="certificado-${id.slice(0, 8)}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
 
       return res.end(pdfBuffer);

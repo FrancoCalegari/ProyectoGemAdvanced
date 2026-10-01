@@ -1,4 +1,4 @@
-﻿import { AuthService } from '../../src/services/auth.service.js';
+import { AuthService } from '../../src/services/auth.service.js';
 import { prisma } from '../setup.js';
 import bcrypt from 'bcrypt';
 
@@ -44,17 +44,17 @@ describe('AuthService', () => {
     it('debe rechazar credenciales invalidas', async () => {
       await expect(
         AuthService.login('test.admin@example.com', 'wrongpass')
-      ).rejects.toThrow('Email o contrasena incorrectos');
+      ).rejects.toThrow('Email o contraseña incorrectos');
     });
 
     it('debe rechazar email inexistente', async () => {
       await expect(
         AuthService.login('noexiste@example.com', 'admin123')
-      ).rejects.toThrow('Email o contrasena incorrectos');
+      ).rejects.toThrow('Email o contraseña incorrectos');
     });
 
     it('debe rechazar si faltan email o password', async () => {
-      await expect(AuthService.login('', '')).rejects.toThrow('Faltan email o password');
+      await expect(AuthService.login('', '')).rejects.toThrow('Faltan email o contraseña');
     });
   });
 
@@ -83,7 +83,7 @@ describe('AuthService', () => {
           apellido: 'User',
           rol: 'INVALIDO',
         })
-      ).rejects.toThrow('Rol invalido');
+      ).rejects.toThrow('Rol inválido');
     });
 
     it('debe rechazar ALUMNO sin alumnoId', async () => {

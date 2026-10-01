@@ -19,6 +19,7 @@ export function requireAuth(req, res, next) {
       email: payload.email,
       rol: payload.rol,
       alumnoId: payload.alumnoId,
+      profesorId: payload.profesorId,
     };
     next();
   } catch (error) {
@@ -43,17 +44,25 @@ export function requireRole(rolesPermitidos) {
   };
 }
 
+/**
+ * Permite el acceso si el usuario tiene uno de los roles permitidos
+ * O si es "dueño" del recurso (alumno viendo su propio id, o profesor viendo el suyo).
+ *
+ * paramName: nombre del parámetro en la URL que contiene el id (default: 'id')
+ */
 export function requireSelfOrRole(rolesPermitidos, paramName = 'id') {
   return (req, res, next) => {
     if (!req.user) {
       return next(new AppError('TOKEN_REQUERIDO', 'Falta el token de autenticación.', 401));
     }
 
-    const esAlumno = req.user.rol === 'ALUMNO';
-    const esMismoAlumno = req.user.alumnoId === req.params[paramName];
+    const idParam = req.params[paramName];
     const tieneRolPermitido = rolesPermitidos.includes(req.user.rol);
 
-    if (tieneRolPermitido || (esAlumno && esMismoAlumno)) {
+    const esMismoAlumno = req.user.rol === 'ALUMNO' && req.user.alumnoId === idParam;
+    const esMismoProfesor = req.user.rol === 'PROFESOR' && req.user.profesorId === idParam;
+
+    if (tieneRolPermitido || esMismoAlumno || esMismoProfesor) {
       return next();
     }
 

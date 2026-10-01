@@ -13,7 +13,17 @@ export class InscripcionService {
       where: { alumnoId },
       include: {
         titulo: { select: { id: true, nombre: true, nivel: true } },
-        resolucion: { select: { id: true, codigo: true, estado: true } },
+        resolucion: {
+          select: {
+            id: true,
+            codigo: true,
+            estado: true,
+            aniosCurriculares: {
+              select: { id: true, numeroAnio: true, nombre: true },
+              orderBy: { numeroAnio: 'asc' },
+            },
+          },
+        },
         _count: {
           select: { cursadas: true },
         },
@@ -84,7 +94,17 @@ export class InscripcionService {
       },
       include: {
         titulo: { select: { id: true, nombre: true, nivel: true } },
-        resolucion: { select: { id: true, codigo: true, estado: true } },
+        resolucion: {
+          select: {
+            id: true,
+            codigo: true,
+            estado: true,
+            aniosCurriculares: {
+              select: { id: true, numeroAnio: true, nombre: true },
+              orderBy: { numeroAnio: 'asc' },
+            },
+          },
+        },
       },
     });
   }

@@ -1,4 +1,4 @@
-﻿import { CertificadoService } from '../../src/services/certificado.service.js';
+import { CertificadoService } from '../../src/services/certificado.service.js';
 import { prisma } from '../setup.js';
 
 describe('CertificadoService', () => {
@@ -57,13 +57,13 @@ describe('CertificadoService', () => {
     it('debe rechazar si el tipo es invalido', async () => {
       await expect(
         CertificadoService.solicitar(alumnoId, { tipo: 'INVALIDO' })
-      ).rejects.toThrow('El tipo debe ser PARCIAL_ANIO o TITULO_COMPLETO');
+      ).rejects.toThrow('Tipo inválido. Debe ser uno de: PARCIAL_ANIO, TITULO_COMPLETO, CONCURRENCIA, PARA_COLECTIVO, LABORAL, PARA_RENDIR.');
     });
 
     it('debe rechazar PARCIAL_ANIO sin anioCurricularId', async () => {
       await expect(
         CertificadoService.solicitar(alumnoId, { tipo: 'PARCIAL_ANIO' })
-      ).rejects.toThrow('Falta anioCurricularId para certificados parciales');
+      ).rejects.toThrow('Falta anioCurricularId para certificados de tipo PARCIAL_ANIO.');
     });
   });
 

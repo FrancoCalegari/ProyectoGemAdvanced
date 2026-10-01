@@ -48,4 +48,12 @@ export class AlumnoController {
       next(error);
     }
   }
+  static async listarAgrupados(req, res, next) {
+    try {
+      const data = await AlumnoService.listarAgrupados();
+      return res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

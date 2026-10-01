@@ -60,4 +60,31 @@ export class CurricularController {
       next(error);
     }
   }
+
+  // ============================================================
+  // Listar TODAS las materias (para selects)
+  // ============================================================
+  static async listarTodasLasMaterias(req, res, next) {
+    try {
+      const materias = await CurricularService.listarTodasLasMaterias();
+      return res.status(200).json(materias);
+    } catch (error) { next(error); }
+  }
+
+  // ============================================================
+  // Listar aulas disponibles (hardcoded por ahora)
+  // ============================================================
+  static async listarAulas(req, res, next) {
+    try {
+      const aulas = [
+        'Aula 1', 'Aula 2', 'Aula 3', 'Aula 4', 'Aula 5', 'Aula 6',
+        'Aula 7', 'Aula 8', 'Aula 9', 'Aula 10',
+        'Aula Magna',
+        'Laboratorio 1', 'Laboratorio 2', 'Laboratorio 3',
+        'Biblioteca', 'SUM', 'Gimnasio',
+        'Taller 1', 'Taller 2',
+      ];
+      return res.status(200).json(aulas);
+    } catch (error) { next(error); }
+  }
 }
