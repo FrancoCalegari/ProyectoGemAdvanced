@@ -93,7 +93,7 @@ export class ProfesorService {
   static async crear(data) {
     const { dni, email, titulos } = data;
 
-    // Validar tÃ­tulos obligatorios
+    // Validar títulos obligatorios
     if (!Array.isArray(titulos) || titulos.length === 0) {
       throw new AppError(...ERRORS.PROFESOR_SIN_TITULO);
     }
@@ -194,7 +194,7 @@ export class ProfesorService {
   }
 
   // ----------------------------------------------------------
-  // TÃTULOS
+  // TÍTULOS
   // ----------------------------------------------------------
   static async agregarTitulo(profesorId, data) {
     const profesor = await prisma.profesor.findUnique({ where: { id: profesorId } });
