@@ -1,4 +1,4 @@
-import prisma from '../config/db.js';
+﻿import prisma from '../config/db.js';
 import { AppError, ERRORS } from '../utils/errors.js';
 
 function calcularEdad(fechaNacimiento) {
@@ -241,7 +241,7 @@ export class AlumnoService {
     }
 
     // Armar la estructura: Título → Resolución → Año → Alumnos
-    const resultado = títulos.map((t) => {
+    const resultado = titulos.map((t) => {
       const resoluciones = t.resoluciones.map((r) => {
         // Alumnos inscriptos en esta resolución
         const aluDeRes = inscripciones.filter((i) => i.resolucionId === r.id);
