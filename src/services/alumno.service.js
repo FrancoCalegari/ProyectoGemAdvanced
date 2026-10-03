@@ -1,4 +1,4 @@
-﻿import prisma from '../config/db.js';
+import prisma from '../config/db.js';
 import { AppError, ERRORS } from '../utils/errors.js';
 
 function calcularEdad(fechaNacimiento) {
@@ -167,16 +167,16 @@ export class AlumnoService {
   // Listar agrupados por Título → Resolución → Año → Alumnos
   // ----------------------------------------------------------
   static async listarAgrupados() {
-    // Traer títulos con sus resoluciones y años
-    const títulos = await prisma.título.findMany({
+    // Traer títulos con sus resoluciones y anios
+    const titulos = await prisma.titulo.findMany({
       where: { estado: 'ACTIVO' },
       include: {
         resoluciones: {
           where: { estado: 'VIGENTE' },
           include: {
-            añosCurriculares: {
+            aniosCurriculares: {
               orderBy: { numeroAnio: 'asc' },
-              select: { id: true, numeroAnio: true, nombre: true },
+              select: { id: true, numeroAnio: true },
             },
           },
         },
@@ -203,38 +203,38 @@ export class AlumnoService {
       orderBy: [{ alumno: { apellido: 'asc' } }, { alumno: { nombre: 'asc' } }],
     });
 
-    // Traer todas las cursadas para saber en quÃ© aÃ±o esta cada alumno
+    // Traer todas las cursadas para saber en qué año esta cada alumno
     const inscripcionIds = inscripciones.map((i) => i.id);
     const cursadas = await prisma.cursadaMateria.findMany({
       where: { inscripcionId: { in: inscripcionIds } },
       include: {
         materia: {
           select: {
-            añoCurricularId: true,
-            añoCurricular: { select: { numeroAnio: true } },
+            anioCurricularId: true,
+            anioCurricular: { select: { numeroAnio: true } },
           },
         },
       },
     });
 
     // Determinar el año de cada alumno (el mayor año con cursadas EN_CURSO o REGULAR)
-    const añoPorInscripcion = {};
+    const anioPorInscripcion = {};
     for (const c of cursadas) {
       const inscId = c.inscripcionId;
-      const numeroAnio = c.materia.añoCurricular.numeroAnio;
+      const numeroAnio = c.materia.anioCurricular.numeroAnio;
       const estado = c.estado;
-      if (!añoPorInscripcion[inscId]) {
-        añoPorInscripcion[inscId] = { maxEnCurso: 0, maxAprobado: 0 };
+      if (!anioPorInscripcion[inscId]) {
+        anioPorInscripcion[inscId] = { maxEnCurso: 0, maxAprobado: 0 };
       }
       if (['EN_CURSO', 'REGULAR'].includes(estado)) {
-        añoPorInscripcion[inscId].maxEnCurso = Math.max(
-          añoPorInscripcion[inscId].maxEnCurso,
+        anioPorInscripcion[inscId].maxEnCurso = Math.max(
+          anioPorInscripcion[inscId].maxEnCurso,
           numeroAnio
         );
       }
       if (estado === 'APROBADA') {
-        añoPorInscripcion[inscId].maxAprobado = Math.max(
-          añoPorInscripcion[inscId].maxAprobado,
+        anioPorInscripcion[inscId].maxAprobado = Math.max(
+          anioPorInscripcion[inscId].maxAprobado,
           numeroAnio
         );
       }
@@ -247,14 +247,14 @@ export class AlumnoService {
         const aluDeRes = inscripciones.filter((i) => i.resolucionId === r.id);
 
         // Asignar cada alumno a un año curricular
-        const años = r.añosCurriculares.map((a) => {
+        const anios = r.aniosCurriculares.map((a) => {
           const alumnosDelAnio = aluDeRes
             .filter((i) => {
-              const info = añoPorInscripcion[i.id];
-              if (!info) return a.numeroAnio === 1; // sin cursadas Ã¢â€ â€™ aÃ±o 1
+              const info = anioPorInscripcion[i.id];
+              if (!info) return a.numeroAnio === 1; // sin cursadas -> anio 1
               // El alumno pertenece al año donde tiene cursadas en curso
-              const añoActual = info.maxEnCurso || info.maxAprobado || 1;
-              return añoActual === a.numeroAnio;
+              const anioActual = info.maxEnCurso || info.maxAprobado || 1;
+              return anioActual === a.numeroAnio;
             })
             .map((i) => ({
               id: i.alumno.id,
@@ -267,9 +267,9 @@ export class AlumnoService {
             }));
 
           return {
-            añoId: a.id,
+            anioId: a.id,
             numeroAnio: a.numeroAnio,
-            nombre: a.nombre,
+            nombre: `${a.numeroAnio}\u00B0 A\u00F1o`,
             totalAlumnos: alumnosDelAnio.length,
             alumnos: alumnosDelAnio,
           };
@@ -279,7 +279,7 @@ export class AlumnoService {
           resolucionId: r.id,
           codigo: r.codigo,
           totalAlumnos: aluDeRes.length,
-          años,
+          anios,
         };
       });
 
