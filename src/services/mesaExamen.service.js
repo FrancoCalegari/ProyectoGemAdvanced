@@ -3,6 +3,7 @@ import { AppError, ERRORS } from '../utils/errors.js';
 
 // Horas mínimas antes de la mesa para inscribirse/cancelar
 const HORAS_MIN_INSCRIPCION = 72;
+const MAX_MESAS_POR_DIA = 2;
 const HORAS_MIN_CANCELACION = 48;
 
 // Calcula las horas de diferencia entre ahora y una fecha/hora de mesa
@@ -268,6 +269,32 @@ export class MesaExamenService {
       }
     }
     // ---- Fin validación nueva ----
+
+    // Validar: máximo 2 mesas por día
+    if (mesa) {
+      const fechaMesa = new Date(mesa.fecha);
+      fechaMesa.setHours(0, 0, 0, 0);
+      const fechaSiguiente = new Date(fechaMesa);
+      fechaSiguiente.setDate(fechaSiguiente.getDate() + 1);
+
+      const inscripcionesMismoDia = await prisma.inscripcionMesa.count({
+        where: {
+          alumnoId,
+          estado: { in: ['INSCRIPTO', 'PRESENTE'] },
+          mesa: {
+            fecha: { gte: fechaMesa, lt: fechaSiguiente },
+          },
+        },
+      });
+
+      if (inscripcionesMismoDia >= MAX_MESAS_POR_DIA) {
+        throw new AppError(
+          'MAX_MESAS_POR_DIA',
+          `Ya estas inscripto en ${MAX_MESAS_POR_DIA} mesas para ese dia. Maximo permitido: ${MAX_MESAS_POR_DIA}.`,
+          409
+        );
+      }
+    }
 
     if (!mesa) {
       throw new AppError('MESA_NOT_FOUND', 'Mesa de examen no encontrada.', 404);

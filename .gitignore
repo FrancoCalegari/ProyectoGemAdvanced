@@ -96,3 +96,12 @@ backups/**/.env.*
 .DS_Store
 Thumbs.db
 frontend/
+
+# Scripts temporales de desarrollo
+scripts_*.js
+scripts_reset*.js
+
+# Backups de frontend (bloqueo temporal)
+*.construccion
+*.funcional
+*.original

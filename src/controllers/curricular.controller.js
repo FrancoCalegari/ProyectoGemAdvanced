@@ -41,6 +41,16 @@ export class CurricularController {
     }
   }
 
+  static async obtenerMateriaPorId(req, res, next) {
+    try {
+      const { id } = req.params;
+      const materia = await CurricularService.obtenerMateriaPorId(id);
+      return res.status(200).json(materia);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async actualizarMateria(req, res, next) {
     try {
       const { id } = req.params;
@@ -85,6 +95,13 @@ export class CurricularController {
         'Taller 1', 'Taller 2',
       ];
       return res.status(200).json(aulas);
+    } catch (error) { next(error); }
+  }
+  static async listarCursadasDeMateria(req, res, next) {
+    try {
+      const { id } = req.params;
+      const cursadas = await CurricularService.listarCursadasDeMateria(id);
+      return res.status(200).json(cursadas);
     } catch (error) { next(error); }
   }
 }

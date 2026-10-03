@@ -29,8 +29,8 @@ const options = {
     tags: [
       { name: 'Health', description: 'Estado del servidor' },
       { name: 'Auth', description: 'Autenticacion y usuarios' },
-      { name: 'Titulos', description: 'Gestion de titulos' },
-      { name: 'Alumnos', description: 'Gestion de alumnos' },
+      { name: 'Títulos', description: 'Gestión de titulos' },
+      { name: 'Alumnos', description: 'Gestión de alumnos' },
       { name: 'Certificados', description: 'Certificados y PDFs' },
     ],
   },

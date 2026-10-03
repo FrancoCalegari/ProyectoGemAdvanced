@@ -56,4 +56,56 @@ export class AlumnoController {
       next(error);
     }
   }
+
+  // ============================================================
+  // HISTORIAL (todos los alumnos, cualquier estado)
+  // ============================================================
+  static async historial(req, res, next) {
+    try {
+      const alumnos = await AlumnoService.historial(req.query);
+      return res.status(200).json(alumnos);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ============================================================
+  // CAMBIAR ESTADO
+  // ============================================================
+  static async cambiarEstado(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { estado } = req.body;
+      const alumno = await AlumnoService.cambiarEstado(id, estado);
+      return res.status(200).json(alumno);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ============================================================
+  // DAR DE BAJA
+  // ============================================================
+  static async darDeBaja(req, res, next) {
+    try {
+      const { id } = req.params;
+      const alumno = await AlumnoService.darDeBaja(id);
+      return res.status(200).json(alumno);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ============================================================
+  // REACTIVAR
+  // ============================================================
+  static async reactivar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const alumno = await AlumnoService.reactivar(id);
+      return res.status(200).json(alumno);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

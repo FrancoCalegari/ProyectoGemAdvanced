@@ -167,4 +167,87 @@ export class AuthService {
     const { passwordHash: _, ...usuarioSinPassword } = usuario;
     return usuarioSinPassword;
   }
+  // ============================================================
+  // ACTUALIZAR PERFIL PROPIO (cada usuario edita sus propios datos)
+  // ============================================================
+  static async actualizarPerfilPropio(userId, data) {
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: userId },
+      include: {
+        alumno: true,
+        profesor: true,
+      },
+    });
+    if (!usuario) throw new AppError('USUARIO_NOT_FOUND', 'Usuario no encontrado.', 404);
+    const resultado = await prisma.$transaction(async (tx) => {
+      // 1) Datos basicos del usuario (nombre, apellido, email)
+      const updateUsuario = {};
+      if (data.nombre) updateUsuario.nombre = data.nombre;
+      if (data.apellido) updateUsuario.apellido = data.apellido;
+      if (data.email && data.email !== usuario.email) {
+        const existente = await tx.usuario.findUnique({ where: { email: data.email } });
+        if (existente) throw new AppError('EMAIL_DUP', 'Ese email ya esta en uso.', 409);
+        updateUsuario.email = data.email;
+      }
+      if (Object.keys(updateUsuario).length > 0) {
+        await tx.usuario.update({ where: { id: userId }, data: updateUsuario });
+      }
+      // 2) Datos especificos del rol
+      if (usuario.alumnoId && usuario.alumno) {
+        const updateAlumno = {};
+        if (data.telefono !== undefined) updateAlumno.telefono = data.telefono;
+        if (data.domicilioCalle !== undefined) updateAlumno.domicilioCalle = data.domicilioCalle;
+        if (data.domicilioNumero !== undefined) updateAlumno.domicilioNumero = data.domicilioNumero;
+        if (data.domicilioCiudad !== undefined) updateAlumno.domicilioCiudad = data.domicilioCiudad;
+        if (data.domicilioProvincia !== undefined) updateAlumno.domicilioProvincia = data.domicilioProvincia;
+        if (data.domicilioCP !== undefined) updateAlumno.domicilioCP = data.domicilioCP;
+        if (Object.keys(updateAlumno).length > 0) {
+          await tx.alumno.update({ where: { id: usuario.alumnoId }, data: updateAlumno });
+        }
+      }
+      if (usuario.profesorId && usuario.profesor) {
+        const updateProf = {};
+        if (data.telefono !== undefined) updateProf.telefono = data.telefono;
+        if (data.domicilioCalle !== undefined) updateProf.domicilioCalle = data.domicilioCalle;
+        if (data.domicilioNumero !== undefined) updateProf.domicilioNumero = data.domicilioNumero;
+        if (data.domicilioCiudad !== undefined) updateProf.domicilioCiudad = data.domicilioCiudad;
+        if (data.domicilioProvincia !== undefined) updateProf.domicilioProvincia = data.domicilioProvincia;
+        if (data.domicilioCP !== undefined) updateProf.domicilioCP = data.domicilioCP;
+        if (data.genero !== undefined) updateProf.genero = data.genero;
+        if (Object.keys(updateProf).length > 0) {
+          await tx.profesor.update({ where: { id: usuario.profesorId }, data: updateProf });
+        }
+      }
+      return await tx.usuario.findUnique({
+        where: { id: userId },
+        include: {
+          alumno: { select: { id: true, nombre: true, apellido: true, dni: true, domicilioCalle: true, domicilioNumero: true, domicilioCiudad: true, domicilioProvincia: true, domicilioCP: true } },
+          profesor: { select: { id: true, nombre: true, apellido: true, dni: true, telefono: true, genero: true, estado: true, domicilioCalle: true, domicilioNumero: true, domicilioCiudad: true, domicilioProvincia: true, domicilioCP: true } },
+        },
+      });
+    });
+    const { passwordHash, ...sinPassword } = resultado;
+    return sinPassword;
+  }
+  // ============================================================
+  // CAMBIAR PASSWORD PROPIO
+  // ============================================================
+  static async cambiarPasswordPropio(userId, passwordActual, passwordNueva) {
+    if (!passwordActual || !passwordNueva) {
+      throw new AppError('VALIDATION_ERROR', 'Faltan la contrasena actual o la nueva.', 400);
+    }
+    if (passwordNueva.length < 6) {
+      throw new AppError('VALIDATION_ERROR', 'La contrasena debe tener al menos 6 caracteres.', 400);
+    }
+    const usuario = await prisma.usuario.findUnique({ where: { id: userId } });
+    if (!usuario) throw new AppError('USUARIO_NOT_FOUND', 'Usuario no encontrado.', 404);
+    const valida = await bcrypt.compare(passwordActual, usuario.passwordHash);
+    if (!valida) throw new AppError('PASSWORD_INCORRECTA', 'La contrasena actual no es correcta.', 401);
+    const passwordHash = await bcrypt.hash(passwordNueva, 10);
+    await prisma.usuario.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+    return { ok: true, message: 'Contrasena actualizada.' };
+  }
 }

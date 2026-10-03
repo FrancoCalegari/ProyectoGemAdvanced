@@ -1,3 +1,27 @@
+/**
+ * @openapi
+ * /api/profesores/{id}/baja:
+ *   patch:
+ *     summary: Dar de baja un profesor (baja logica)
+ *     tags: [Profesores]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Profesor INACTIVO }
+ * /api/profesores/{id}/reactivar:
+ *   patch:
+ *     summary: Reactivar un profesor
+ *     tags: [Profesores]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Profesor ACTIVO }
+ * /api/profesores/{id}/estado:
+ *   patch:
+ *     summary: Cambiar estado (ACTIVO/SUPLENCIA/INACTIVO)
+ *     tags: [Profesores]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Estado actualizado }
+ */
 import { Router } from 'express';
 import { ProfesorController } from '../controllers/profesor.controller.js';
 import { requireAuth, requireRole, requireSelfOrRole } from '../middlewares/auth.js';
@@ -45,6 +69,11 @@ router.delete(
   requireRole(['ADMIN']),
   ProfesorController.eliminar
 );
+
+// Baja logica y estados
+router.patch('/:id/baja', requireRole(['ADMIN']), ProfesorController.darDeBaja);
+router.patch('/:id/reactivar', requireRole(['ADMIN']), ProfesorController.reactivar);
+router.patch('/:id/estado', requireRole(['ADMIN']), ProfesorController.cambiarEstado);
 
 // ===================== TÍTULOS =====================
 router.post(

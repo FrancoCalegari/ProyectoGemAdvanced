@@ -27,7 +27,7 @@ export class CurricularService {
   }
 
   static async crearMateria(anioCurricularId, data) {
-    const { nombre, codigo, cargaHoraria, tipoCursada } = data;
+    const { nombre, codigo, cargaHoraria, tipoCursada, descripcion, contenidosMinimos, objetivos } = data;
 
     const anio = await prisma.anioCurricular.findUnique({
       where: { id: anioCurricularId },
@@ -48,7 +48,10 @@ export class CurricularService {
         nombre,
         codigo,
         cargaHoraria,
-        tipoCursada,
+          tipoCursada,
+        descripcion: descripcion || null,
+        contenidosMinimos: contenidosMinimos || null,
+        objetivos: objetivos || null,
       },
     });
   }
@@ -88,6 +91,46 @@ export class CurricularService {
     });
   }
 
+  static async obtenerMateriaPorId(id) {
+    const materia = await prisma.materia.findUnique({
+      where: { id },
+      include: {
+        anioCurricular: {
+          include: {
+            resolucion: {
+              include: { titulo: true },
+            },
+          },
+        },
+        correlativasParaEsta: {
+          include: {
+            materiaRequerida: {
+              select: { id: true, nombre: true, codigo: true },
+            },
+          },
+        },
+        esCorrelativaDe: {
+          include: {
+            materia: {
+              select: { id: true, nombre: true, codigo: true },
+            },
+          },
+        },
+        profesores: {
+          include: {
+            profesor: {
+              select: { id: true, nombre: true, apellido: true, email: true },
+            },
+          },
+        },
+      },
+    });
+    if (!materia) {
+      throw new AppError('MATERIA_NOT_FOUND', 'Materia no encontrada.', 404);
+    }
+    return materia;
+  }
+
   static async actualizarMateria(id, data) {
     const materia = await prisma.materia.findUnique({
       where: { id },
@@ -121,6 +164,9 @@ export class CurricularService {
         ...(data.codigo && { codigo: data.codigo }),
         ...(data.cargaHoraria && { cargaHoraria: data.cargaHoraria }),
         ...(data.tipoCursada && { tipoCursada: data.tipoCursada }),
+        ...(data.descripcion !== undefined && { descripcion: data.descripcion || null }),
+        ...(data.contenidosMinimos !== undefined && { contenidosMinimos: data.contenidosMinimos || null }),
+        ...(data.objetivos !== undefined && { objetivos: data.objetivos || null }),
       },
     });
   }
@@ -194,5 +240,35 @@ export class CurricularService {
         { nombre: 'asc' },
       ],
     });
+  }
+  // ============================================================
+  // Listar alumnos cursando una materia (con su cursada)
+  // ============================================================
+  static async listarCursadasDeMateria(materiaId) {
+    const materia = await prisma.materia.findUnique({ where: { id: materiaId } });
+    if (!materia) {
+      throw new AppError('MATERIA_NOT_FOUND', 'Materia no encontrada.', 404);
+    }
+    const cursadas = await prisma.cursadaMateria.findMany({
+      where: { materiaId },
+      include: {
+        inscripcion: {
+          include: {
+            alumno: { select: { id: true, nombre: true, apellido: true, dni: true, email: true } },
+          },
+        },
+      },
+      orderBy: { inscripcion: { alumno: { apellido: 'asc' } } },
+    });
+    return cursadas.map((c) => ({
+      cursadaId: c.id,
+      estado: c.estado,
+      notaCursada: c.notaCursada,
+      notaFinal: c.notaFinal,
+      esEquivalencia: c.esEquivalencia,
+      fechaEstado: c.fechaEstado,
+      alumno: c.inscripcion.alumno,
+      inscripcionId: c.inscripcionId,
+    }));
   }
 }

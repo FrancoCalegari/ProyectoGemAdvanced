@@ -32,6 +32,13 @@ enum tipo_correlatividad {
   PARA_RENDIR_FINAL
 }
 
+enum estado_alumno {
+  ACTIVO
+  EGRESADO
+  BAJA
+  INACTIVO
+}
+
 enum estado_inscripcion {
   ACTIVA
   EGRESADO
@@ -174,6 +181,7 @@ model Titulo {
   nivel         String
   duracionAnios Int           @map("duracion_anios")
   estado        estado_titulo @default(ACTIVO)
+  descripcion   String?       @db.Text
 
   resoluciones  Resolucion[]
   inscripciones Inscripcion[]
@@ -217,12 +225,15 @@ model AnioCurricular {
 }
 
 model Materia {
-  id               String       @id @default(uuid()) @db.Uuid
-  anioCurricularId String       @map("anio_curricular_id") @db.Uuid
-  nombre           String
-  codigo           String
-  cargaHoraria     Int          @map("carga_horaria")
-  tipoCursada      tipo_cursada @map("tipo_cursada")
+  id                String       @id @default(uuid()) @db.Uuid
+  anioCurricularId  String       @map("anio_curricular_id") @db.Uuid
+  nombre            String
+  codigo            String
+  cargaHoraria      Int          @map("carga_horaria")
+  tipoCursada       tipo_cursada @map("tipo_cursada")
+  descripcion       String?      @db.Text
+  contenidosMinimos String?      @map("contenidos_minimos") @db.Text
+  objetivos         String?      @db.Text
 
   anioCurricular AnioCurricular @relation(fields: [anioCurricularId], references: [id], onDelete: Cascade)
 
@@ -280,11 +291,12 @@ model Alumno {
   domicilioProvincia String? @map("domicilio_provincia")
   domicilioCP        String? @map("domicilio_cp")
 
-  tienePartidaNacimiento   Boolean @default(false) @map("tiene_partida_nacimiento")
-  tieneAnaliticoSecundario Boolean @default(false) @map("tiene_analitico_secundario")
-  tieneAnaliticoIncompleto Boolean @default(false) @map("tiene_analitico_incompleto")
-  tieneCertificado7mo      Boolean @default(false) @map("tiene_certificado_7mo")
-  tieneCUD                 Boolean @default(false) @map("tiene_cud")
+  tienePartidaNacimiento   Boolean       @default(false) @map("tiene_partida_nacimiento")
+  tieneAnaliticoSecundario Boolean       @default(false) @map("tiene_analitico_secundario")
+  tieneAnaliticoIncompleto Boolean       @default(false) @map("tiene_analitico_incompleto")
+  tieneCertificado7mo      Boolean       @default(false) @map("tiene_certificado_7mo")
+  tieneCUD                 Boolean       @default(false) @map("tiene_cud")
+  estadoAlumno             estado_alumno @default(ACTIVO) @map("estado_alumno")
 
   inscripciones           Inscripcion[]
   certificados            Certificado[]

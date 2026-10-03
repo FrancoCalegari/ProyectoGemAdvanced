@@ -3,7 +3,7 @@ import { AppError, ERRORS } from '../utils/errors.js';
 
 export class TituloService {
   static async crearTituloConResolucion(data) {
-    const { nombre, nivel, duracionAnios, resolucion } = data;
+    const { nombre, nivel, duracionAnios, descripcion, resolucion } = data;
 
     const existente = await prisma.titulo.findUnique({ where: { nombre } });
     if (existente) {
@@ -24,6 +24,7 @@ export class TituloService {
           nivel,
           duracionAnios,
           estado: 'ACTIVO',
+          descripcion: descripcion || null,
         },
       });
 
@@ -149,6 +150,7 @@ export class TituloService {
         ...(data.nivel && { nivel: data.nivel }),
         ...(data.duracionAnios && { duracionAnios: data.duracionAnios }),
         ...(data.estado && { estado: data.estado }),
+        ...(data.descripcion !== undefined && { descripcion: data.descripcion }),
       },
     });
   }

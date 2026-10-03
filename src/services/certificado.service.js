@@ -394,44 +394,35 @@ export class CertificadoService {
     }
 
     // Fallback (PARCIAL_ANIO, TITULO_COMPLETO, PARA_RENDIR)
-    let materiasQuery;
+    // Traemos TODAS las materias del plan para armar tabla completa
+    let materiasPlan;
     if (certificado.tipo === 'PARCIAL_ANIO') {
-      materiasQuery = await prisma.cursadaMateria.findMany({
-        where: {
-          inscripcionId: inscripcion.id,
-          estado: 'APROBADA',
-          materia: { anioCurricularId: certificado.anioCurricularId },
-        },
-        include: { materia: true },
-        orderBy: { materia: { codigo: 'asc' } },
-      });
-    } else if (certificado.tipo === 'TITULO_COMPLETO') {
-      materiasQuery = await prisma.cursadaMateria.findMany({
-        where: {
-          inscripcionId: inscripcion.id,
-          estado: 'APROBADA',
-          materia: { anioCurricular: { resolucionId: certificado.resolucionId } },
-        },
-        include: { materia: true },
-        orderBy: { materia: { codigo: 'asc' } },
-      });
+      const anio = inscripcion.resolucion.aniosCurriculares.find((a) => a.id === certificado.anioCurricularId);
+      materiasPlan = anio ? anio.materias : [];
     } else {
-      materiasQuery = await prisma.cursadaMateria.findMany({
-        where: {
-          inscripcionId: inscripcion.id,
-          estado: { in: ['APROBADA', 'REGULAR'] },
-          materia: { anioCurricular: { resolucionId: certificado.resolucionId } },
-        },
-        include: { materia: true },
-        orderBy: { materia: { codigo: 'asc' } },
-      });
+      materiasPlan = inscripcion.resolucion.aniosCurriculares.flatMap((a) => a.materias);
     }
 
-    const materias = materiasQuery.map((c) => ({
-      codigo: c.materia.codigo,
-      nombre: c.materia.nombre,
-      estado: c.estado,
-    }));
+    // Cursadas del alumno con sus notas
+    const cursadasAlumno = await prisma.cursadaMateria.findMany({
+      where: {
+        inscripcionId: inscripcion.id,
+        materiaId: { in: materiasPlan.map((m) => m.id) },
+      },
+    });
+
+    // Construimos el array con datos completos (nombre + estado + nota)
+    const materias = materiasPlan.map((m) => {
+      const c = cursadasAlumno.find((x) => x.materiaId === m.id);
+      return {
+        id: m.id,
+        codigo: m.codigo,
+        nombre: m.nombre,
+        estado: c ? c.estado : 'NO_CURSADA',
+        notaCursada: c?.notaCursada ?? null,
+        notaFinal: c?.notaFinal ?? null,
+      };
+    }).sort((a, b) => a.codigo.localeCompare(b.codigo));
 
     return await generarCertificadoPDF({
       ...baseDatos,

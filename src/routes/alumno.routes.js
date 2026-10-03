@@ -8,12 +8,16 @@ import { CertificadoController } from '../controllers/certificado.controller.js'
 
 const router = Router();
 
+router.get('/historial', AlumnoController.historial);
 router.get('/agrupados', AlumnoController.listarAgrupados);
 router.get('/', AlumnoController.listar);
 router.post('/', AlumnoController.crear);
 router.get('/:id', AlumnoController.obtenerPorId);
 router.put('/:id', AlumnoController.actualizar);
 router.delete('/:id', AlumnoController.eliminar);
+router.patch('/:id/estado', AlumnoController.cambiarEstado);
+router.patch('/:id/baja', AlumnoController.darDeBaja);
+router.patch('/:id/reactivar', AlumnoController.reactivar);
 
 router.get('/:id/admision', AdmisionController.evaluar);
 

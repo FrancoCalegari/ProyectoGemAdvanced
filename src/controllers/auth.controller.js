@@ -28,4 +28,17 @@ export class AuthController {
       next(error);
     }
   }
+  static async actualizarPerfilPropio(req, res, next) {
+    try {
+      const usuario = await AuthService.actualizarPerfilPropio(req.user.id, req.body);
+      return res.status(200).json(usuario);
+    } catch (error) { next(error); }
+  }
+  static async cambiarPasswordPropio(req, res, next) {
+    try {
+      const { passwordActual, passwordNueva } = req.body;
+      const resultado = await AuthService.cambiarPasswordPropio(req.user.id, passwordActual, passwordNueva);
+      return res.status(200).json(resultado);
+    } catch (error) { next(error); }
+  }
 }

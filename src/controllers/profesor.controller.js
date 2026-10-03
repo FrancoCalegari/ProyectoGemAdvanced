@@ -109,4 +109,26 @@ export class ProfesorController {
       next(error);
     }
   }
+  static async darDeBaja(req, res, next) {
+    try {
+      const { id } = req.params;
+      const prof = await ProfesorService.darDeBaja(id);
+      return res.status(200).json(prof);
+    } catch (error) { next(error); }
+  }
+  static async reactivar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const prof = await ProfesorService.reactivar(id);
+      return res.status(200).json(prof);
+    } catch (error) { next(error); }
+  }
+  static async cambiarEstado(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { estado } = req.body;
+      const prof = await ProfesorService.cambiarEstado(id, estado);
+      return res.status(200).json(prof);
+    } catch (error) { next(error); }
+  }
 }

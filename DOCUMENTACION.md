@@ -309,15 +309,15 @@ Ejemplo: **crear un título con su primera resolución.**
 
 El sistema tiene **13 modelos** y **10 enums**. Las entidades principales son:
 
-- **Titulo:** carrera ofrecida.
-- **Resolucion:** versión de la currícula.
+- **Título:** carrera ofrecida.
+- **Resolución:** versión de la currícula.
 - **AnioCurricular:** año dentro de una resolución.
 - **Materia:** unidad curricular dentro de un año.
 - **Correlatividad:** requisito entre materias.
 - **Equivalencia:** par de materias equivalentes entre carreras.
 - **Alumno:** estudiante.
 - **ExamenNivelatorio:** examen de admisión.
-- **Inscripcion:** vínculo alumno ↔ título ↔ resolución.
+- **Inscripción:** vínculo alumno ↔ título ↔ resolución.
 - **CursadaMateria:** historial académico por materia.
 - **Certificado:** constancia emitida.
 - **Usuario:** usuario del sistema con credenciales.
@@ -397,10 +397,10 @@ model AnioCurricular {
 **Decisión:** Los `onDelete` están configurados según la lógica de negocio.
 
 **Ejemplos:**
-- `Titulo` → `Resolucion`: `Cascade` (borrar un título borra sus resoluciones).
-- `Titulo` → `Inscripcion`: `Restrict` (no se puede borrar un título con alumnos inscriptos).
-- `Alumno` → `Inscripcion`: `Cascade` (borrar un alumno borra sus inscripciones).
-- `Resolucion` → `Inscripcion`: `Restrict` (no se puede borrar una resolución con inscripciones).
+- `Título` → `Resolución`: `Cascade` (borrar un título borra sus resoluciones).
+- `Título` → `Inscripción`: `Restrict` (no se puede borrar un título con alumnos inscriptos).
+- `Alumno` → `Inscripción`: `Cascade` (borrar un alumno borra sus inscripciones).
+- `Resolución` → `Inscripción`: `Restrict` (no se puede borrar una resolución con inscripciones).
 
 **Razón:** Proteger la integridad histórica. Un título con alumnos no se puede borrar; hay que darlo de baja lógicamente (`estado = DE_BAJA`).
 
@@ -418,9 +418,9 @@ model AnioCurricular {
 
 **Uso:** Cuando un alumno cambia de carrera, el sistema busca equivalencias desde las materias aprobadas en la carrera origen hacia las materias de la carrera destino.
 
-#### 4.3.8 `Inscripcion` con auto-referencia para cambio de carrera
+#### 4.3.8 `Inscripción` con auto-referencia para cambio de carrera
 
-**Decisión:** `Inscripcion` tiene `inscripcionOrigenId` (FK a sí misma) y `esCambioCarrera` (boolean).
+**Decisión:** `Inscripción` tiene `inscripcionOrigenId` (FK a sí misma) y `esCambioCarrera` (boolean).
 
 **Razón:** Registrar el cambio de carrera como un vínculo entre dos inscripciones. Permite auditar el flujo completo.
 
@@ -1017,7 +1017,7 @@ Swagger (OpenAPI) es un estándar para documentar APIs REST. Genera una **UI int
 
 **Ver:**
 - Título: "Plataforma Academica API".
-- Tags: Health, Auth, Titulos, Alumnos, Certificados.
+- Tags: Health, Auth, Títulos, Alumnos, Certificados.
 - Endpoints documentados.
 
 **Probar:**

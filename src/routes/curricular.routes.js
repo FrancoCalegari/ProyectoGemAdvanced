@@ -11,6 +11,8 @@ router.get('/aulas', CurricularController.listarAulas);
 router.post('/anios/:anioId/materias', CurricularController.crearMateria);
 router.get('/anios/:id/materias', CurricularController.listarMateriasDeAnio);
 
+router.get('/materias/:id', CurricularController.obtenerMateriaPorId);
+router.get('/materias/:id/cursadas', CurricularController.listarCursadasDeMateria);
 router.put('/materias/:id', CurricularController.actualizarMateria);
 router.delete('/materias/:id', CurricularController.eliminarMateria);
 

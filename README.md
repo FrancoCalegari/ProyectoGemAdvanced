@@ -1,4 +1,4 @@
-﻿# Backend — Plataforma de Gestión de Carreras Académicas
+# Backend — Plataforma de Gestión de Carreras Académicas
 
 Este repositorio contiene el backend de una plataforma pensada para que una institución educativa pueda administrar sus carreras de forma ordenada, versionando los planes de estudio sin perder el historial académico de nadie.
 
@@ -8,7 +8,7 @@ La idea central es simple pero poderosa: cuando una institución cambia el plan 
 
 ## Estado actual del proyecto
 
-El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del plan están completas, más un conjunto de **módulos nuevos (M1-M7)** que agregan Profesores, Licencias, Solicitudes y Clases Suspendidas.
+El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del plan están completas, más un conjunto de **módulos nuevos (M1-M11)**. Actualmente hay **135 endpoints** documentados con Swagger y **51 tests unitarios** pasando.
 
 ### Fases del plan original
 
@@ -25,7 +25,7 @@ El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del p
 | 8 | Testing y Documentación (Swagger) | 🔄 En desarrollo |
 | 9 | Despliegue | ⏳ Pendiente |
 
-### Módulos nuevos (M1-M7)
+### Módulos nuevos (M1-M11)
 
 | Etapa | Descripción | Estado |
 |---|---|---|
@@ -37,11 +37,21 @@ El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del p
 | M4 | Backend Solicitudes (alumno/profesor crean, admin resuelve) | ✅ Completada |
 | M5 | Examen nivelatorio con flujo condicional | ✅ Completada |
 | M6 | Mesa "Ingreso Art. N° X" con tipoMesa | ✅ Completada |
-| M7 | Frontend Profesores (en construcción) | 🔄 En desarrollo |
-| M8 | Panel personal (autogestión por rol) | ⏳ Pendiente |
-| M9 | Estadísticas | ⏳ Pendiente |
-| M10 | Dashboard completo | ⏳ Pendiente |
-| M11 | Backup + documentación final | ⏳ Pendiente |
+| M7 | Frontend Profesores (CRUD + detalle) | ✅ Completada |
+| M7.5 | Historial de Alumnos + baja lógica | ✅ Completada |
+| M8 | Panel personal por rol | ✅ Completada |
+| M9 | Estadísticas con Recharts + exportación PDF/CSV | ✅ Completada |
+| M10 | Dashboard completo con KPIs | ✅ Completada |
+| M11 | Backup + documentación + tests | ✅ Completada |
+
+### Módulos backend adicionales
+
+| Módulo | Descripción |
+|---|---|
+| Usuarios | CRUD completo + baja lógica |
+| Dashboard | KPIs + actividad reciente |
+| Estadísticas | Análisis institucional con filtros |
+| Baja lógica Profesores | `PATCH /:id/baja` + `/reactivar` |
 
 ---
 
@@ -490,7 +500,7 @@ LIBRE / DESAPROBADA ------> EN_CURSO (recursada)
 
 ### Inscripción a mesas
 
-- Solo a mesas de materias **de la carrera del alumno** (valida `Inscripcion` activa en la resolución de la materia).
+- Solo a mesas de materias **de la carrera del alumno** (valida `Inscripción` activa en la resolución de la materia).
 - Mínimo **72 horas antes** para inscribirse.
 - Mínimo **48 horas antes** para cancelar.
 - Respeto del **cupo máximo**.
@@ -518,8 +528,8 @@ El schema completo está en `prisma/schema.prisma`. Tiene **19 modelos** y **15 
 
 ### Modelos académicos
 
-- `Titulo` — carreras ofrecidas
-- `Resolucion` — versiones de la currícula
+- `Título` — carreras ofrecidas
+- `Resolución` — versiones de la currícula
 - `AnioCurricular` — años de cada resolución
 - `Materia` — unidades curriculares
 - `Correlatividad` — requisitos entre materias
@@ -529,7 +539,7 @@ El schema completo está en `prisma/schema.prisma`. Tiene **19 modelos** y **15 
 
 - `Alumno` — estudiantes (con domicilio y documentación)
 - `ExamenNivelatorio` — exámenes de admisión (con `hora`, `lugar`, `articulo`)
-- `Inscripcion` — vínculo alumno ↔ título ↔ resolución
+- `Inscripción` — vínculo alumno ↔ título ↔ resolución
 - `CursadaMateria` — historial académico por materia
 - `Asistencia` — asistencias por clase y fecha
 - `Certificado` — constancias emitidas
@@ -613,7 +623,7 @@ El proyecto tiene tests unitarios con **Jest**. La configuración está en `jest
 npm test
 ```
 
-**Estado actual:** 22 tests pasando (4 suites).
+**Estado actual:** 51 tests pasando (10 suites).
 
 ---
 

@@ -1,4 +1,4 @@
-import prisma from '../config/db.js';
+﻿import prisma from '../config/db.js';
 import { AppError, ERRORS } from '../utils/errors.js';
 
 function calcularEdad(fechaNacimiento) {
@@ -51,7 +51,7 @@ export class AlumnoService {
       include: {
         inscripciones: {
           include: {
-            titulo: { select: { id: true, nombre: true, nivel: true } },
+            título: { select: { id: true, nombre: true, nivel: true } },
             resolucion: { select: { id: true, codigo: true, estado: true } },
           },
           orderBy: { fechaInscripcion: 'desc' },
@@ -153,39 +153,28 @@ export class AlumnoService {
   }
 
   static async eliminar(id) {
-    const alumno = await prisma.alumno.findUnique({
-      where: { id },
-      include: {
-        _count: { select: { inscripciones: true, certificados: true } },
-      },
-    });
+    // Los alumnos NUNCA se eliminan. Se hace baja logica.
+    const alumno = await prisma.alumno.findUnique({ where: { id } });
+    if (!alumno) throw new AppError(...ERRORS.ALUMNO_NOT_FOUND);
 
-    if (!alumno) {
-      throw new AppError(...ERRORS.ALUMNO_NOT_FOUND);
-    }
-
-    if (alumno._count.inscripciones > 0 || alumno._count.certificados > 0) {
-      throw new AppError(
-        'ALUMNO_CON_REGISTROS',
-        'No se puede eliminar: tiene inscripciones o certificados asociados.',
-        409
-      );
-    }
-
-    return await prisma.alumno.delete({ where: { id } });
+    throw new AppError(
+      'ALUMNO_NO_SE_ELIMINA',
+      'No es posible eliminar los datos de un alumno. Los registros academicos se conservan por normativa institucional.',
+      409
+    );
   }
   // ----------------------------------------------------------
   // Listar agrupados por Título → Resolución → Año → Alumnos
   // ----------------------------------------------------------
   static async listarAgrupados() {
     // Traer títulos con sus resoluciones y años
-    const titulos = await prisma.titulo.findMany({
+    const títulos = await prisma.título.findMany({
       where: { estado: 'ACTIVO' },
       include: {
         resoluciones: {
           where: { estado: 'VIGENTE' },
           include: {
-            aniosCurriculares: {
+            añosCurriculares: {
               orderBy: { numeroAnio: 'asc' },
               select: { id: true, numeroAnio: true, nombre: true },
             },
@@ -214,15 +203,15 @@ export class AlumnoService {
       orderBy: [{ alumno: { apellido: 'asc' } }, { alumno: { nombre: 'asc' } }],
     });
 
-    // Traer todas las cursadas para saber en qué año está cada alumno
+    // Traer todas las cursadas para saber en quÃ© aÃ±o esta cada alumno
     const inscripcionIds = inscripciones.map((i) => i.id);
     const cursadas = await prisma.cursadaMateria.findMany({
       where: { inscripcionId: { in: inscripcionIds } },
       include: {
         materia: {
           select: {
-            anioCurricularId: true,
-            anioCurricular: { select: { numeroAnio: true } },
+            añoCurricularId: true,
+            añoCurricular: { select: { numeroAnio: true } },
           },
         },
       },
@@ -232,7 +221,7 @@ export class AlumnoService {
     const añoPorInscripcion = {};
     for (const c of cursadas) {
       const inscId = c.inscripcionId;
-      const numeroAnio = c.materia.anioCurricular.numeroAnio;
+      const numeroAnio = c.materia.añoCurricular.numeroAnio;
       const estado = c.estado;
       if (!añoPorInscripcion[inscId]) {
         añoPorInscripcion[inscId] = { maxEnCurso: 0, maxAprobado: 0 };
@@ -252,20 +241,20 @@ export class AlumnoService {
     }
 
     // Armar la estructura: Título → Resolución → Año → Alumnos
-    const resultado = titulos.map((t) => {
+    const resultado = títulos.map((t) => {
       const resoluciones = t.resoluciones.map((r) => {
         // Alumnos inscriptos en esta resolución
         const aluDeRes = inscripciones.filter((i) => i.resolucionId === r.id);
 
         // Asignar cada alumno a un año curricular
-        const anios = r.aniosCurriculares.map((a) => {
+        const años = r.añosCurriculares.map((a) => {
           const alumnosDelAnio = aluDeRes
             .filter((i) => {
               const info = añoPorInscripcion[i.id];
-              if (!info) return a.numeroAnio === 1; // sin cursadas → año 1
+              if (!info) return a.numeroAnio === 1; // sin cursadas Ã¢â€ â€™ aÃ±o 1
               // El alumno pertenece al año donde tiene cursadas en curso
-              const anioActual = info.maxEnCurso || info.maxAprobado || 1;
-              return anioActual === a.numeroAnio;
+              const añoActual = info.maxEnCurso || info.maxAprobado || 1;
+              return añoActual === a.numeroAnio;
             })
             .map((i) => ({
               id: i.alumno.id,
@@ -278,7 +267,7 @@ export class AlumnoService {
             }));
 
           return {
-            anioId: a.id,
+            añoId: a.id,
             numeroAnio: a.numeroAnio,
             nombre: a.nombre,
             totalAlumnos: alumnosDelAnio.length,
@@ -290,12 +279,12 @@ export class AlumnoService {
           resolucionId: r.id,
           codigo: r.codigo,
           totalAlumnos: aluDeRes.length,
-          anios,
+          años,
         };
       });
 
       return {
-        tituloId: t.id,
+        títuloId: t.id,
         nombre: t.nombre,
         nivel: t.nivel,
         totalAlumnos: resoluciones.reduce((acc, r) => acc + r.totalAlumnos, 0),
@@ -304,5 +293,85 @@ export class AlumnoService {
     });
 
     return resultado;
+  }
+
+  // ============================================================
+  // HISTORIAL COMPLETO (todos los estados, nunca se borra)
+  // ============================================================
+  static async historial(filtros = {}) {
+    const where = {};
+    if (filtros.estadoAlumno) where.estadoAlumno = filtros.estadoAlumno;
+    if (filtros.busqueda) {
+      where.OR = [
+        { nombre: { contains: filtros.busqueda, mode: 'insensitive' } },
+        { apellido: { contains: filtros.busqueda, mode: 'insensitive' } },
+        { dni: { contains: filtros.busqueda } },
+        { email: { contains: filtros.busqueda, mode: 'insensitive' } },
+      ];
+    }
+
+    const alumnos = await prisma.alumno.findMany({
+      where,
+      include: {
+        _count: {
+          select: { inscripciones: true, certificados: true, examenes: true, solicitudes: true },
+        },
+      },
+      orderBy: [{ estadoAlumno: 'asc' }, { apellido: 'asc' }, { nombre: 'asc' }],
+    });
+
+    return alumnos.map(conEdad);
+  }
+
+  // ============================================================
+  // CAMBIAR ESTADO (ACTIVO / EGRESADO / BAJA / INACTIVO)
+  // ============================================================
+  static async cambiarEstado(id, estado) {
+    const ESTADOS_VALIDOS = ['ACTIVO', 'EGRESADO', 'BAJA', 'INACTIVO'];
+    if (!ESTADOS_VALIDOS.includes(estado)) {
+      throw new AppError('VALIDATION_ERROR', `Estado invalido. Debe ser uno de: ${ESTADOS_VALIDOS.join(', ')}.`, 400);
+    }
+
+    const alumno = await prisma.alumno.findUnique({ where: { id } });
+    if (!alumno) throw new AppError(...ERRORS.ALUMNO_NOT_FOUND);
+
+    return await prisma.alumno.update({
+      where: { id },
+      data: { estadoAlumno: estado },
+    });
+  }
+
+  // ============================================================
+  // BAJA LOGICA
+  // ============================================================
+  static async darDeBaja(id) {
+    const alumno = await prisma.alumno.findUnique({ where: { id } });
+    if (!alumno) throw new AppError(...ERRORS.ALUMNO_NOT_FOUND);
+
+    if (alumno.estadoAlumno === 'BAJA') {
+      throw new AppError('ALUMNO_YA_BAJA', 'El alumno ya esta dado de baja.', 409);
+    }
+
+    return await prisma.alumno.update({
+      where: { id },
+      data: { estadoAlumno: 'BAJA' },
+    });
+  }
+
+  // ============================================================
+  // REACTIVAR
+  // ============================================================
+  static async reactivar(id) {
+    const alumno = await prisma.alumno.findUnique({ where: { id } });
+    if (!alumno) throw new AppError(...ERRORS.ALUMNO_NOT_FOUND);
+
+    if (alumno.estadoAlumno === 'ACTIVO') {
+      throw new AppError('ALUMNO_YA_ACTIVO', 'El alumno ya esta activo.', 409);
+    }
+
+    return await prisma.alumno.update({
+      where: { id },
+      data: { estadoAlumno: 'ACTIVO' },
+    });
   }
 }

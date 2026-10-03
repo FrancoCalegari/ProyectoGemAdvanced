@@ -93,7 +93,7 @@ export class ProfesorService {
   static async crear(data) {
     const { dni, email, titulos } = data;
 
-    // Validar títulos obligatorios
+    // Validar tÃ­tulos obligatorios
     if (!Array.isArray(titulos) || titulos.length === 0) {
       throw new AppError(...ERRORS.PROFESOR_SIN_TITULO);
     }
@@ -182,32 +182,19 @@ export class ProfesorService {
   }
 
   static async eliminar(id) {
-    const profesor = await prisma.profesor.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: { licencias: true, solicitudes: true, notasCargadas: true },
-        },
-      },
-    });
+    // Los profesores NUNCA se eliminan. Se hace baja logica.
+    const profesor = await prisma.profesor.findUnique({ where: { id } });
+    if (!profesor) throw new AppError(...ERRORS.PROFESOR_NOT_FOUND);
 
-    if (!profesor) {
-      throw new AppError(...ERRORS.PROFESOR_NOT_FOUND);
-    }
-
-    if (
-      profesor._count.licencias > 0 ||
-      profesor._count.solicitudes > 0 ||
-      profesor._count.notasCargadas > 0
-    ) {
-      throw new AppError(...ERRORS.PROFESOR_CON_DEPENDENCIAS);
-    }
-
-    return await prisma.profesor.delete({ where: { id } });
+    throw new AppError(
+      'PROFESOR_NO_SE_ELIMINA',
+      'No es posible eliminar los datos de un profesor. Los registros academicos se conservan por normativa institucional.',
+      409
+    );
   }
 
   // ----------------------------------------------------------
-  // TÍTULOS
+  // TÃTULOS
   // ----------------------------------------------------------
   static async agregarTitulo(profesorId, data) {
     const profesor = await prisma.profesor.findUnique({ where: { id: profesorId } });
@@ -303,6 +290,40 @@ export class ProfesorService {
         },
       },
       orderBy: [{ diaSemana: 'asc' }, { horaInicio: 'asc' }],
+    });
+  }
+  static async darDeBaja(id) {
+    const prof = await prisma.profesor.findUnique({ where: { id } });
+    if (!prof) throw new AppError(...ERRORS.PROFESOR_NOT_FOUND);
+    if (prof.estado === 'INACTIVO') {
+      throw new AppError('PROFESOR_YA_BAJA', 'El profesor ya esta dado de baja.', 409);
+    }
+    return await prisma.profesor.update({
+      where: { id },
+      data: { estado: 'INACTIVO' },
+    });
+  }
+  static async reactivar(id) {
+    const prof = await prisma.profesor.findUnique({ where: { id } });
+    if (!prof) throw new AppError(...ERRORS.PROFESOR_NOT_FOUND);
+    if (prof.estado === 'ACTIVO') {
+      throw new AppError('PROFESOR_YA_ACTIVO', 'El profesor ya esta activo.', 409);
+    }
+    return await prisma.profesor.update({
+      where: { id },
+      data: { estado: 'ACTIVO' },
+    });
+  }
+  static async cambiarEstado(id, estado) {
+    const ESTADOS = ['ACTIVO', 'SUPLENCIA', 'INACTIVO'];
+    if (!ESTADOS.includes(estado)) {
+      throw new AppError('VALIDATION_ERROR', 'Estado invalido.', 400);
+    }
+    const prof = await prisma.profesor.findUnique({ where: { id } });
+    if (!prof) throw new AppError(...ERRORS.PROFESOR_NOT_FOUND);
+    return await prisma.profesor.update({
+      where: { id },
+      data: { estado },
     });
   }
 }

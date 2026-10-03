@@ -1,4 +1,21 @@
-﻿import { Router } from 'express';
+/**
+ * @openapi
+ * /api/auth/me:
+ *   patch:
+ *     summary: Actualizar mi propio perfil
+ *     tags: [Auth]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Perfil actualizado }
+ * /api/auth/me/password:
+ *   patch:
+ *     summary: Cambiar mi contrasena
+ *     tags: [Auth]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Contrasena actualizada }
+ */
+import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller.js';
 import { requireAuth, requireRole } from '../middlewares/auth.js';
 
@@ -52,6 +69,8 @@ router.post('/login', AuthController.login);
  *         description: Token requerido o invalido
  */
 router.get('/me', requireAuth, AuthController.me);
+router.patch('/me', requireAuth, AuthController.actualizarPerfilPropio);
+router.patch('/me/password', requireAuth, AuthController.cambiarPasswordPropio);
 
 /**
  * @openapi
