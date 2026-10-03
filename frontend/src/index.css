@@ -1,0 +1,107 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   TEMA UNICO: light-2b (Claro Profesional - Sidebar tenue)
+   Fondo gris muy suave, sidebar con tinte azul claro,
+   cards blancas, primary azul institucional.
+   ============================================================ */
+
+:root {
+  /* ==== FONDOS ==== */
+  --bg-base: #f1f5f9;             /* fondo principal */
+  --bg-elevated: #e2e8f0;         /* sidebar */
+  --bg-card: #ffffff;             /* cards */
+  --bg-muted: #e2e8f0;            /* elementos atenuados */
+  --bg-hover: rgba(37, 99, 235, 0.06); /* hover sutil */
+
+  /* ==== BORDES ==== */
+  --border-subtle: #e2e8f0;
+  --border-default: #b8c4d4;         /* un poco mas marcado */
+  --border-strong: #94a3b8;          /* para elementos activos */
+  --border-accent: rgba(37, 99, 235, 0.4);
+
+  /* ==== TEXTO ==== */
+  --text-primary: #0a0f1a;
+  --text-secondary: #1e293b;
+  --text-muted: #475569;
+
+  /* ==== COLORES PRINCIPALES ==== */
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #0891b2;
+  --secondary-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #059669;
+  --warning: #d97706;
+
+  /* ==== ACENTO (usado en sidebar activo, etc) ==== */
+  --accent: #dbeafe;
+  --accent-foreground: #1e40af;
+  --accent-text: #1e40af;
+
+  /* ==== SIDEBAR ==== */
+  --sidebar-bg: #e2e8f0;
+  --sidebar-border: #cbd5e1;
+  --sidebar-text: #0f172a;
+  --sidebar-muted: #64748b;
+  --sidebar-hover: rgba(37, 99, 235, 0.08);
+  --sidebar-active-bg: #dbeafe;
+  --sidebar-active-text: #1e40af;
+}
+
+@layer base {
+  * {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply antialiased;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* Gradiente sutil de fondo (opcional) */
+  body {
+    background-image:
+      radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(8, 145, 178, 0.03) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-base); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+}
+
+/* ============================================================
+   UTILIDADES: Cards con relieve y sombras sutiles
+   ============================================================ */
+@layer components {
+  .card-elevated {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.06);
+    border-color: var(--border-default);
+  }
+  .card-elevated:hover {
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(37, 99, 235, 0.10);
+    border-color: rgba(37, 99, 235, 0.4);
+  }
+}
