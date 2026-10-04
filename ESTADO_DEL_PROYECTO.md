@@ -60,11 +60,6 @@ Backend + Frontend completos. Todas las funcionalidades del plan original (Fases
 
 ---
 
-## Frontend bloqueado
+## Frontend Activo
 
-El frontend esta bloqueado: solo se ve la pantalla 'Sistema en construccion'. Para desbloquear:
-
-```powershell
-Copy-Item "frontend\src\pages\Login.jsx.funcional" "frontend\src\pages\Login.jsx" -Force
-Copy-Item "frontend\src\App.jsx.funcional" "frontend\src\App.jsx" -Force
-```
+El frontend React fue reconstruido, está activo y cuenta con un diseño premium y moderno. Puedes acceder a los paneles de administración y simular el inicio de sesión en el puerto 5173.

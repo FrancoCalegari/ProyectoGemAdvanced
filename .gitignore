@@ -78,13 +78,6 @@ prisma/seed.js.backup
 *.tmp.js
 *.old.js
 
-# Frontend (por ahora NO se sube)
-# frontend/   <-- descomentar si querés ignorarlo entero
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-frontend/.env.*
-
 # .env de backups
 backups/**/.env
 backups/**/.env.*
@@ -101,7 +94,3 @@ frontend/
 scripts_*.js
 scripts_reset*.js
 
-# Backups de frontend (bloqueo temporal)
-*.construccion
-*.funcional
-*.original
