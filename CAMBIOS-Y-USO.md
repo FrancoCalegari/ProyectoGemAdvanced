@@ -1,7 +1,6 @@
-# Cambios y modo de uso — versión corregida
+# Cambios y modo de uso
 
-Esta carpeta es el proyecto con las correcciones aplicadas sobre el ZIP original
-(`ProyectoGemAdvanced.zip`). El original **no fue modificado** y los datos de tu base tampoco.
+Detalle de los últimos cambios de la plataforma, el alcance de cada rol y las pantallas nuevas.
 
 Todo lo que sigue fue verificado ejecutando el sistema: **51/51 tests unitarios**,
 **70 comprobaciones de API del rol Celador** y **65 comprobaciones generales**, siempre
@@ -13,7 +12,11 @@ sobre una base descartable que se eliminó al terminar.
 
 ```bash
 # 1) Base de datos (PostgreSQL 18 en :5434)
-docker compose up -d
+docker network create academico_net
+docker run -d --name postgres-academico --network academico_net \
+  -e POSTGRES_USER=academico_user -e POSTGRES_PASSWORD=31881701 \
+  -e POSTGRES_DB=plataforma_academica -p 5434:5432 \
+  -v academico_pgdata:/var/lib/postgresql/data postgres:18-alpine
 
 # 2) Aplicar las migraciones (roles BEDEL/CELADOR + módulo de personal no docente)
 npx prisma migrate deploy
@@ -36,7 +39,8 @@ npm run dev
 > **Frontend y backend van juntos.** Este frontend contra una API vieja devuelve 404 en
 > `/api/cursadas/:id`, en asistencia y en todo el módulo de personal no docente.
 
-Las dependencias y el cliente de Prisma vienen generados (`node_modules/`).
+Si clonás el repositorio, instalá primero las dependencias (`npm install` en la raíz y en
+`frontend/`, más `npx prisma generate`).
 
 ---
 
@@ -46,7 +50,7 @@ Las dependencias y el cliente de Prisma vienen generados (`node_modules/`).
 |---|---|---|---|
 | ADMIN | admin@plataforma.edu.ar | admin123 | Todo |
 | SECRETARIA | secretaria@plataforma.edu.ar | secretaria123 | Gestión académica |
-| PROFESOR | los de tu base | profesor123 | Sus materias, licencias, pedidos |
+| PROFESOR | roberto.fernandez@plataforma.edu.ar | profesor123 | Sus materias, licencias, pedidos |
 | ALUMNO | alumno0@plataforma.edu.ar | alumno123 | Su historial, constancias, mesas |
 | BEDEL | bedel@plataforma.edu.ar | bedel123 | Consulta + asistencia, y su panel personal |
 | **CELADOR** | celador@plataforma.edu.ar | celador123 | **Solo su panel personal** |
@@ -94,7 +98,7 @@ Dos capas:
 
 ---
 
-## 3.b Menú del administrador reorganizado (más compacto)
+## 4. Menú del administrador reorganizado (más compacto)
 
 El menú de gestión pasó de **12 ítems sueltos a 6**, agrupados y desplegables. Cada grupo se
 abre solo cuando estás parado en una de sus pantallas:
@@ -129,7 +133,7 @@ reciben **403**. `GET /api/personal/usuario/:usuarioId` devuelve una persona por
 
 ---
 
-## 4. Gestión del personal no docente (ADMIN / SECRETARIA)
+## 5. Gestión del personal no docente (ADMIN / SECRETARIA)
 
 Nuevo ítem de menú **Personal no docente** (`/empleados`):
 
@@ -149,7 +153,7 @@ Nuevo ítem de menú **Personal no docente** (`/empleados`):
 
 ---
 
-## 5. Cambios de base de datos (migración `20261005190000_add_empleados_horarios_celador`)
+## 6. Cambios de base de datos (migración `20261005190000_add_empleados_horarios_celador`)
 
 | Objeto | Detalle |
 |---|---|
@@ -164,7 +168,7 @@ La migración es **aditiva**: no borra ni reescribe datos existentes.
 
 ---
 
-## 6. Errores corregidos (versión anterior de esta entrega)
+## 7. Errores corregidos en la revisión inicial
 
 ### Backend
 
@@ -195,15 +199,15 @@ La migración es **aditiva**: no borra ni reescribe datos existentes.
 
 ---
 
-## 7. Qué NO se tocó
+## 8. Alcance del cambio
 
-- Los datos de tu base ni el ZIP original.
-- La lógica de negocio y los modelos preexistentes (sólo se **agregó** una migración y valores de enum).
-- Los permisos de BEDEL, PROFESOR, ALUMNO, SECRETARIA y ADMIN (verificado uno por uno).
+- **Migración aditiva:** sólo se agregó una migración y valores de enum; no se borró ni reescribió nada.
+- **Sin cambios en la lógica preexistente:** los modelos y las reglas anteriores siguen igual.
+- **Permisos verificados** uno por uno para ADMIN, SECRETARIA, PROFESOR, ALUMNO, BEDEL y CELADOR.
 
 ---
 
-## 8. Notas técnicas y de personalización
+## 9. Notas técnicas y de personalización
 
 - **Documentación de la API:** el Swagger interactivo está en `/api-docs` (módulos base) y el
   detalle funcional de todos los módulos está en este documento y en `DOCUMENTACION.md`.

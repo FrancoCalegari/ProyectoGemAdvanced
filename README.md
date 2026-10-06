@@ -1,5 +1,15 @@
 # Plataforma de Gestión de Carreras Académicas (Backend + Frontend)
 
+![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?logo=prisma&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-51%20passing-C21325?logo=jest&logoColor=white)
+![Roles](https://img.shields.io/badge/roles-6-blue)
+
 Este repositorio contiene el **backend y el frontend** de una plataforma pensada para que una institución educativa pueda administrar sus carreras de forma ordenada, versionando los planes de estudio sin perder el historial académico de nadie.
 
 La idea central es simple pero poderosa: cuando una institución cambia el plan de estudios de una carrera, los alumnos que ya están cursando **no** pueden quedar atrapados en un limbo administrativo. Acá eso se resuelve con **resoluciones**: cada versión de la currícula es una entidad propia, con su propio set de años y materias. Cuando llega una nueva versión, la anterior se cierra y queda como registro histórico. Los alumnos que ya estaban inscriptos siguen bajo su plan original; los nuevos ingresan con el plan nuevo.
@@ -125,6 +135,8 @@ El detalle de los últimos cambios, el alcance de cada rol y las pantallas nueva
 | Dashboard | KPIs + actividad reciente |
 | Estadísticas | Análisis institucional con filtros |
 | Baja lógica Profesores | `PATCH /:id/baja` + `/reactivar` |
+| Personal no docente | Fichas (cargo, sector y estado) + horarios con historial de modificaciones |
+| Personal (vista unificada) | Administradores, secretarias, bedeles y celadores en una sola pantalla |
 
 ---
 
@@ -141,6 +153,10 @@ El detalle de los últimos cambios, el alcance de cada rol y las pantallas nueva
 | Generación de PDF | pdfkit |
 | Autenticación | JWT (jsonwebtoken + bcrypt) |
 | Testing | Jest |
+| **Frontend** | React 19 + Vite 8 + Tailwind CSS 3 |
+| Ruteo | React Router 7 |
+| Cliente HTTP | axios |
+| Gráficos y reportes | Recharts 3 + exportación PDF/CSV |
 
 Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en el plan, por ser la versión estable más reciente al momento de arrancar. Esto implicó un ajuste en la configuración del volumen del contenedor (ver sección "Notas técnicas").
 
@@ -292,8 +308,8 @@ curl http://localhost:3000/health
 
 | Método | Endpoint | Descripción |
 |---|---|---|
-| POST | `/api/auth/login` | Login, devuelve JWT (con `rol`, `alumnoId`, `profesorId`) |
-| POST | `/api/auth/register` | Alta de usuario (solo ADMIN) — soporta ADMIN, SECRETARIA, ALUMNO, PROFESOR |
+| POST | `/api/auth/login` | Login, devuelve JWT (con `rol`, `alumnoId`, `profesorId` y `empleadoId`) |
+| POST | `/api/auth/register` | Alta de usuario (solo ADMIN) — admite los **6 roles** (BEDEL y CELADOR se vinculan a una ficha de empleado) |
 | GET | `/api/auth/me` | Datos del usuario autenticado |
 
 ### Títulos
@@ -813,3 +829,8 @@ El desarrollo se realiza en la rama `feature/backend-plataforma-academica`.
 ## Documentación técnica
 
 Para entender a fondo el proyecto (arquitectura, decisiones técnicas, reglas de negocio, testing y despliegue), consultar [`DOCUMENTACION.md`](./DOCUMENTACION.md).
+
+Documentación complementaria:
+
+- [`ESTADO_DEL_PROYECTO.md`](./ESTADO_DEL_PROYECTO.md) — estado de cada fase y módulo del plan.
+- [`CAMBIOS-Y-USO.md`](./CAMBIOS-Y-USO.md) — últimos cambios, alcance de cada rol y pantallas nuevas.

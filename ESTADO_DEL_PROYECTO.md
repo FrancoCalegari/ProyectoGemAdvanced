@@ -1,16 +1,16 @@
 # Estado del Proyecto - Plataforma de Gestión de Carreras Academicas
 
-**Ultima actualizacion:** 2026-10-01 14:23
+**Última actualización:** 2026-10-06
 **Rama:** feature/backend-plataforma-academica
 
 ---
 
 ## Resumen ejecutivo
 
-Backend + Frontend completos. Todas las funcionalidades del plan original (Fases 0-7) + modulos nuevos (M1-M10).
+Backend + Frontend completos. Todas las funcionalidades del plan original (**Fases 0 a 9**) y los **módulos nuevos (M1-M11)**, con los **seis roles** del sistema.
 
-- **Backend:** 25+ controllers, 24+ services, 22+ routers
-- **Frontend:** 18+ paginas con estadisticas profesionales y exportacion PDF/CSV
+- **Backend:** 25 controllers, 25 services y 23 routers, con 136 endpoints documentados.
+- **Frontend:** 27 pantallas (React + Vite + Tailwind) con panel por rol, estadísticas y exportación PDF/CSV.
 
 ---
 
@@ -29,7 +29,7 @@ Backend + Frontend completos. Todas las funcionalidades del plan original (Fases
 | 8 | Testing y Documentacion | Completada |
 | 9 | Despliegue (Dockerfile + docker-compose) | Completada |
 
-## Módulos nuevos (M1-M10)
+## Módulos nuevos (M1-M11)
 
 | Etapa | Descripción | Estado |
 |-------|-------------|--------|
