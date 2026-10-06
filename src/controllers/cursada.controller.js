@@ -30,4 +30,14 @@ export class CursadaController {
       next(error);
     }
   }
+
+  static async actualizar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const cursada = await CursadaService.actualizar(id, req.body, req.user);
+      return res.status(200).json(cursada);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

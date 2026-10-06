@@ -201,7 +201,7 @@ export default function Estadisticas() {
  { metrica: 'Alumnos total', valor: d.alumnos?.total ?? 0 },
  { metrica: 'Alumnos activos %', valor: d.alumnos?.activos ?? 0 },
  { metrica: 'Materias Totales', valor: d.cursadas?.total ?? 0 },
- { metrica: 'Aprobación %', valor: d.cursadas?.aprobación ?? 0 },
+ { metrica: 'Aprobación %', valor: d.cursadas?.aprobacion ?? 0 },
  { metrica: 'Promedio notas', valor: d.cursadas?.promedio ?? 0 },
  { metrica: 'Asistencias total', valor: d.asistencias?.total ?? 0 },
  { metrica: 'Asistencia %', valor: d.asistencias?.porcentajeAsistencia ?? 0 },
@@ -217,13 +217,13 @@ export default function Estadisticas() {
  { metrica: '% Bajas', valor: d.porcentajes.bajas },
  { metrica: '% Inactivos', valor: d.porcentajes.inactivos },
  ...d.porEstado.map((e) => ({ metrica: `Alumnos ${labelEstado(e.estado)}`, valor: e.cantidad })),
- ...d.porTitulo.map((t) => ({ metrica: `Título: ${t.título}`, valor: t.cantidad })),
+ ...d.porTitulo.map((t) => ({ metrica: `Título: ${t.titulo}`, valor: t.cantidad })),
  ];
  } else if (tab === 'cursadas') {
  filas = [
  { metrica: 'Total Materias', valor: d.total },
- { metrica: '% Aprobación', valor: d.porcentajeAprobación },
- { metrica: '% Desaprobación', valor: d.porcentajeDesaprobación },
+ { metrica: '% Aprobación', valor: d.porcentajeAprobacion },
+ { metrica: '% Desaprobación', valor: d.porcentajeDesaprobacion },
  { metrica: 'Promedio notas', valor: d.promedioNotas },
  ...d.porEstado.map((e) => ({ metrica: `Cursadas ${labelEstado(e.estado)}`, valor: e.cantidad })),
  ...d.porMateria.map((m) => ({ metrica: `Materia: ${m.materia}`, valor: m.total })),
@@ -271,14 +271,14 @@ export default function Estadisticas() {
  if (tab === 'resumen') {
  secciones = [
  {
- título: '1. Indicadores clave (KPI)',
- descripción: 'Métricas principales del sistema en el periodo analizado',
+ titulo: '1. Indicadores clave (KPI)',
+ descripcion: 'Métricas principales del sistema en el periodo analizado',
  tipo: 'kpis',
  datos: {
  'Alumnos totales': fmtNum(d.alumnos?.total),
  '% Activos': fmtPct(d.alumnos?.activos),
  'Materias Totales': fmtNum(d.cursadas?.total),
- '% Aprobación': fmtPct(d.cursadas?.aprobación),
+ '% Aprobación': fmtPct(d.cursadas?.aprobacion),
  'Promedio notas': d.cursadas?.promedio ?? 0,
  'Asistencias': fmtNum(d.asistencias?.total),
  '% Asistencia': fmtPct(d.asistencias?.porcentajeAsistencia),
@@ -291,38 +291,38 @@ export default function Estadisticas() {
  } else if (tab === 'alumnos') {
  secciones = [
  {
- título: '1. Distribucion por estado',
- descripción: 'Cantidad de alumnos en cada estado academico',
+ titulo: '1. Distribucion por estado',
+ descripcion: 'Cantidad de alumnos en cada estado academico',
  tipo: 'tabla',
  datos: d.porEstado.map((e) => ({ Estado: labelEstado(e.estado), Cantidad: e.cantidad })),
  },
  {
- título: '2. Distribucion por título',
- descripción: 'Alumnos activamente inscriptos en cada carrera',
+ titulo: '2. Distribucion por título',
+ descripcion: 'Alumnos activamente inscriptos en cada carrera',
  tipo: 'tabla',
- datos: d.porTitulo.map((t) => ({ Título: t.título, Cantidad: t.cantidad })),
+ datos: d.porTitulo.map((t) => ({ Titulo: t.titulo, Cantidad: t.cantidad })),
  },
  ];
  } else if (tab === 'cursadas') {
  secciones = [
  {
- título: '1. Resumen general',
- descripción: 'Métricas agregadas de todas las cursadas',
+ titulo: '1. Resumen general',
+ descripcion: 'Métricas agregadas de todas las cursadas',
  tipo: 'kpis',
  datos: {
  'Total Materias': fmtNum(d.total),
- '% Aprobación': fmtPct(d.porcentajeAprobación),
- '% Desaprobación': fmtPct(d.porcentajeDesaprobación),
+ '% Aprobación': fmtPct(d.porcentajeAprobacion),
+ '% Desaprobación': fmtPct(d.porcentajeDesaprobacion),
  'Promedio notas': d.promedioNotas,
  },
  },
  {
- título: '2. Cursadas por estado',
+ titulo: '2. Cursadas por estado',
  tipo: 'tabla',
  datos: d.porEstado.map((e) => ({ Estado: labelEstado(e.estado), Cantidad: e.cantidad })),
  },
  {
- título: '3. Top 10 materias con mas cursadas',
+ titulo: '3. Top 10 materias con mas cursadas',
  tipo: 'tabla',
  datos: d.porMateria.slice(0, 10).map((m) => ({
  Materia: m.materia,
@@ -335,7 +335,7 @@ export default function Estadisticas() {
  } else if (tab === 'asistencias') {
  secciones = [
  {
- título: '1. Resumen general',
+ titulo: '1. Resumen general',
  tipo: 'kpis',
  datos: {
  'Total asistencias': fmtNum(d.total),
@@ -350,7 +350,7 @@ export default function Estadisticas() {
  } else if (tab === 'mesas') {
  secciones = [
  {
- título: '1. Resumen general',
+ titulo: '1. Resumen general',
  tipo: 'kpis',
  datos: {
  'Total mesas': fmtNum(d.total),
@@ -361,7 +361,7 @@ export default function Estadisticas() {
  },
  },
  {
- título: '2. Mesas por tipo',
+ titulo: '2. Mesas por tipo',
  tipo: 'tabla',
  datos: d.porTipo.map((t) => ({ Tipo: labelEstado(t.tipo), Cantidad: t.cantidad })),
  },
@@ -369,7 +369,7 @@ export default function Estadisticas() {
  } else if (tab === 'certificados') {
  secciones = [
  {
- título: '1. Resumen general',
+ titulo: '1. Resumen general',
  tipo: 'kpis',
  datos: {
  'Certificados emitidos': fmtNum(d.total),
@@ -377,15 +377,15 @@ export default function Estadisticas() {
  },
  },
  {
- título: '2. Certificados por tipo',
+ titulo: '2. Certificados por tipo',
  tipo: 'tabla',
  datos: d.porTipo.map((t) => ({ Tipo: labelEstado(t.tipo), Cantidad: t.cantidad })),
  },
  ];
  }
  await exportarPDF({
- título: `${tabInfo?.label}`,
- subtítulo: 'Reporte estadístico institucional',
+ titulo: `${tabInfo?.label}`,
+ subtitulo: 'Reporte estadístico institucional',
  periodo: periodoTexto,
  secciones,
  nombre: `estadisticas_${tab}`,
@@ -490,35 +490,35 @@ export default function Estadisticas() {
  {tab === 'resumen' && data.resumen && (
  <div className="space-y-6">
  <SeccionHeader
- número="1"
- título="Indicadores clave del sistema"
- descripción="Métricas principales agregadas en el periodo analizado"
+ numero="1"
+ titulo="Indicadores clave del sistema"
+ descripcion="Métricas principales agregadas en el periodo analizado"
  />
  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
  <KpiCard icon={Users} label="Alumnos totales" value={fmtNum(data.resumen.alumnos.total)} sub={`${fmtPct(data.resumen.alumnos.activos)} activos`} />
- <KpiCard icon={BookOpen} label="Cursadas totales" value={fmtNum(data.resumen.cursadas.total)} sub={`Aprobación: ${fmtPct(data.resumen.cursadas.aprobación)}`} />
+ <KpiCard icon={BookOpen} label="Cursadas totales" value={fmtNum(data.resumen.cursadas.total)} sub={`Aprobación: ${fmtPct(data.resumen.cursadas.aprobacion)}`} />
  <KpiCard icon={Award} label="Promedio notas" value={data.resumen.cursadas.promedio} sub="Escala 0-10" />
  <KpiCard icon={CalendarCheck} label="Asistencias" value={fmtNum(data.resumen.asistencias.total)} sub={`${fmtPct(data.resumen.asistencias.porcentajeAsistencia)} de asistencia`} />
  <KpiCard icon={CalendarDays} label="Clases canceladas" value={fmtNum(data.resumen.clasesSuspendidas.total)} />
  <KpiCard icon={Award} label="Certificados" value={fmtNum(data.resumen.certificados.total)} />
  </div>
  <SeccionHeader
- número="2"
- título="Distribucion comparativa"
- descripción="Visualizacion cruzada de las métricas principales"
+ numero="2"
+ titulo="Distribucion comparativa"
+ descripcion="Visualizacion cruzada de las métricas principales"
  />
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
  <ChartCard
  id="chart-aprobación"
  title="Tasa de aprobación general"
  description="Porcentaje de cursadas aprobadas sobre el total analizado"
- nota={`El ${data.resumen.cursadas.aprobación}% de las cursadas del periodo fueron aprobadas`}
+ nota={`El ${data.resumen.cursadas.aprobacion}% de las cursadas del periodo fueron aprobadas`}
  >
  {data.resumen.cursadas.total > 0 ? (
  <RadialBarChart
  innerRadius="60%"
  outerRadius="100%"
- data={[{ name: 'Aprobación', value: data.resumen.cursadas.aprobación, fill: '#10b981' }]}
+ data={[{ name: 'Aprobación', value: data.resumen.cursadas.aprobacion, fill: '#10b981' }]}
  startAngle={90}
  endAngle={-270}
  >
@@ -560,9 +560,9 @@ export default function Estadisticas() {
  {tab === 'alumnos' && data.alumnos && (
  <div className="space-y-6">
  <SeccionHeader
- número="1"
- título="Indicadores de alumnos"
- descripción="Totales y proporciones por estado academico"
+ numero="1"
+ titulo="Indicadores de alumnos"
+ descripcion="Totales y proporciones por estado academico"
  />
  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
  <KpiCard icon={Users} label="Total" value={fmtNum(data.alumnos.total)} />
@@ -571,9 +571,9 @@ export default function Estadisticas() {
  <KpiCard icon={TrendingDown} label="Bajas" value={fmtPct(data.alumnos.porcentajes.bajas)} />
  </div>
  <SeccionHeader
- número="2"
- título="Distribucion por estado"
- descripción="Conteo absoluto de alumnos agrupados por su estado actual"
+ numero="2"
+ titulo="Distribucion por estado"
+ descripcion="Conteo absoluto de alumnos agrupados por su estado actual"
  />
  <ChartCard
  id="chart-alumnos-por-estado"
@@ -596,9 +596,9 @@ export default function Estadisticas() {
  ) : <EmptyChart />}
  </ChartCard>
  <SeccionHeader
- número="3"
- título="Distribucion por título"
- descripción="Alumnos activamente inscriptos en cada carrera"
+ numero="3"
+ titulo="Distribucion por título"
+ descripcion="Alumnos activamente inscriptos en cada carrera"
  />
  <ChartCard
  id="chart-alumnos-por-título"
@@ -627,20 +627,20 @@ export default function Estadisticas() {
  {tab === 'cursadas' && data.cursadas && (
  <div className="space-y-6">
  <SeccionHeader
- número="1"
- título="Indicadores de cursadas"
- descripción="Totales y tasas de aprobación del periodo"
+ numero="1"
+ titulo="Indicadores de cursadas"
+ descripcion="Totales y tasas de aprobación del periodo"
  />
  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
  <KpiCard icon={BookOpen} label="Total" value={fmtNum(data.cursadas.total)} />
- <KpiCard icon={TrendingUp} label="Aprobación" value={fmtPct(data.cursadas.porcentajeAprobación)} />
- <KpiCard icon={TrendingDown} label="Desaprob." value={fmtPct(data.cursadas.porcentajeDesaprobación)} />
+ <KpiCard icon={TrendingUp} label="Aprobación" value={fmtPct(data.cursadas.porcentajeAprobacion)} />
+ <KpiCard icon={TrendingDown} label="Desaprob." value={fmtPct(data.cursadas.porcentajeDesaprobacion)} />
  <KpiCard icon={Award} label="Promedio" value={data.cursadas.promedioNotas} sub="Escala 0-10" />
  </div>
  <SeccionHeader
- número="2"
- título="Composicion por estado"
- descripción="Proporcion de cursadas en cada estado academico"
+ numero="2"
+ titulo="Composicion por estado"
+ descripcion="Proporcion de cursadas en cada estado academico"
  />
  <ChartCard
  id="chart-cursadas-estado"
@@ -669,9 +669,9 @@ export default function Estadisticas() {
  ) : <EmptyChart />}
  </ChartCard>
  <SeccionHeader
- número="3"
- título="Ranking de materias por volumen"
- descripción="Las materias con mayor y menor cantidad de cursadas registradas en el periodo. Este indicador muestra donde se concentra la actividad academica."
+ numero="3"
+ titulo="Ranking de materias por volumen"
+ descripcion="Las materias con mayor y menor cantidad de cursadas registradas en el periodo. Este indicador muestra donde se concentra la actividad academica."
  />
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
  <ChartCard
@@ -722,9 +722,9 @@ export default function Estadisticas() {
  </ChartCard>
  </div>
  <SeccionHeader
- número="4"
- título="Indicadores de rendimiento academico"
- descripción="Materias con mayor cantidad de aprobaciónes y desaprobaciónes. Estos indicadores son clave para detectar asignaturas que requieren refuerzo pedagogico."
+ numero="4"
+ titulo="Indicadores de rendimiento academico"
+ descripcion="Materias con mayor cantidad de aprobaciónes y desaprobaciónes. Estos indicadores son clave para detectar asignaturas que requieren refuerzo pedagogico."
  />
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
  <ChartCard
@@ -771,9 +771,9 @@ export default function Estadisticas() {
  </ChartCard>
  </div>
  <SeccionHeader
- número="5"
- título="Alertas pedagogicas: materias con mayor tasa de desaprobación"
- descripción="Ranking de materias ordenadas por porcentaje de desaprobación sobre el total de cursadas. Este indicador permite identificar asignaturas que requieren intervencion pedagogica inmediata."
+ numero="5"
+ titulo="Alertas pedagogicas: materias con mayor tasa de desaprobación"
+ descripcion="Ranking de materias ordenadas por porcentaje de desaprobación sobre el total de cursadas. Este indicador permite identificar asignaturas que requieren intervencion pedagogica inmediata."
  />
  <ChartCard
  id="chart-tasa-desaprobación"
@@ -832,9 +832,9 @@ export default function Estadisticas() {
  {tab === 'asistencias' && data.asistencias && (
  <div className="space-y-6">
  <SeccionHeader
- número="1"
- título="Indicadores clave de asistencia"
- descripción="Resumen ejecutivo de asistencias, inasistencias y justificaciones del periodo analizado"
+ numero="1"
+ titulo="Indicadores clave de asistencia"
+ descripcion="Resumen ejecutivo de asistencias, inasistencias y justificaciones del periodo analizado"
  />
  <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
  <KpiCard icon={CalendarCheck} label="Total registros" value={fmtNum(data.asistencias.total)} sub="Clases registradas" />
@@ -844,9 +844,9 @@ export default function Estadisticas() {
  <KpiCard icon={Award} label="Asist. efectiva" value={fmtPct(data.asistencias.porcentajeAsistencia)} sub="Presentes + justificadas" />
  </div>
  <SeccionHeader
- número="2"
- título="Tasa de asistencia institucional"
- descripción="La tasa de asistencia efectiva considera tanto las asistencias presentes como las ausencias justificadas (con certificado aprobado). Es el indicador oficial de regularidad."
+ numero="2"
+ titulo="Tasa de asistencia institucional"
+ descripcion="La tasa de asistencia efectiva considera tanto las asistencias presentes como las ausencias justificadas (con certificado aprobado). Es el indicador oficial de regularidad."
  />
  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
  <Card className="p-5">
@@ -874,9 +874,9 @@ export default function Estadisticas() {
  </Card>
  </div>
  <SeccionHeader
- número="3"
- título="Distribucion detallada de registros"
- descripción="Análisis de composicion: cada registro de clase cae en una de estas tres categorias"
+ numero="3"
+ titulo="Distribucion detallada de registros"
+ descripcion="Análisis de composicion: cada registro de clase cae en una de estas tres categorias"
  />
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
  <ChartCard
@@ -934,9 +934,9 @@ export default function Estadisticas() {
  {tab === 'mesas' && data.mesas && (
  <div className="space-y-6">
  <SeccionHeader
- número="1"
- título="Indicadores de mesas de examen"
- descripción="Totales de mesas y presentismo en el periodo"
+ numero="1"
+ titulo="Indicadores de mesas de examen"
+ descripcion="Totales de mesas y presentismo en el periodo"
  />
  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
  <KpiCard icon={CalendarDays} label="Total mesas" value={fmtNum(data.mesas.total)} />
@@ -945,9 +945,9 @@ export default function Estadisticas() {
  <KpiCard icon={TrendingDown} label="Ausentes" value={fmtNum(data.mesas.inscripciones.ausentes)} />
  </div>
  <SeccionHeader
- número="2"
- título="Distribucion y composicion"
- descripción="Mesas por tipo y estado de inscripciones"
+ numero="2"
+ titulo="Distribucion y composicion"
+ descripcion="Mesas por tipo y estado de inscripciones"
  />
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
  <ChartCard
@@ -1003,9 +1003,9 @@ export default function Estadisticas() {
  {tab === 'certificados' && data.certificados && (
  <div className="space-y-6">
  <SeccionHeader
- número="1"
- título="Indicadores de certificados"
- descripción="Totales de certificados emitidos y presentados"
+ numero="1"
+ titulo="Indicadores de certificados"
+ descripcion="Totales de certificados emitidos y presentados"
  />
  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
  <KpiCard icon={Award} label="Emitidos" value={fmtNum(data.certificados.total)} />
@@ -1014,9 +1014,9 @@ export default function Estadisticas() {
  <KpiCard icon={FileCheck} label="Estados" value={data.certificados.porEstado.length} />
  </div>
  <SeccionHeader
- número="2"
- título="Distribucion de certificados"
- descripción="Certificados por tipo de emision y estado de presentacion"
+ numero="2"
+ titulo="Distribucion de certificados"
+ descripcion="Certificados por tipo de emision y estado de presentacion"
  />
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
  <ChartCard

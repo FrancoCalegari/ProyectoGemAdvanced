@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { homePathFor } from '../utils/roles';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 
@@ -18,8 +19,8 @@ export default function Login() {
     setCargando(true);
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      const usuario = await login(email, password);
+      navigate(homePathFor(usuario?.rol));
     } catch (err) {
       const mensaje = err.response?.data?.message || 'Error al iniciar sesion';
       setError(mensaje);
@@ -86,6 +87,8 @@ export default function Login() {
               <p><strong>Secretaria:</strong> secretaria@plataforma.edu.ar / secretaria123</p>
               <p><strong>Alumno:</strong> alumno0@plataforma.edu.ar / alumno123</p>
               <p><strong>Profesor:</strong> roberto.fernandez@plataforma.edu.ar / profesor123</p>
+              <p><strong>Bedel:</strong> bedel@plataforma.edu.ar / bedel123</p>
+              <p><strong>Celador:</strong> celador@plataforma.edu.ar / celador123</p>
             </div>
           </div>
         </div>

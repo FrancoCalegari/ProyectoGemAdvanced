@@ -1,4 +1,4 @@
-﻿import prisma from '../config/db.js';
+import prisma from '../config/db.js';
 import { AppError, ERRORS } from '../utils/errors.js';
 
 function calcularEdad(fechaNacimiento) {
@@ -51,7 +51,7 @@ export class AlumnoService {
       include: {
         inscripciones: {
           include: {
-            título: { select: { id: true, nombre: true, nivel: true } },
+            titulo: { select: { id: true, nombre: true, nivel: true } },
             resolucion: { select: { id: true, codigo: true, estado: true } },
           },
           orderBy: { fechaInscripcion: 'desc' },
@@ -284,7 +284,7 @@ export class AlumnoService {
       });
 
       return {
-        títuloId: t.id,
+        tituloId: t.id,
         nombre: t.nombre,
         nivel: t.nivel,
         totalAlumnos: resoluciones.reduce((acc, r) => acc + r.totalAlumnos, 0),

@@ -28,7 +28,7 @@ export function Layout() {
  <span className="text-muted-foreground hidden sm:inline">API conectada</span>
  </div>
  <span className="text-border hidden sm:inline">|</span>
- <span className="text-muted-foreground hidden md:inline">Plataforma Académica v1.0</span>
+ <span className="text-muted-foreground hidden md:inline">Plataforma Académica</span>
  </div>
  <div className="flex items-center gap-3">
  <span className="text-muted-foreground capitalize">{fechaStr}</span>

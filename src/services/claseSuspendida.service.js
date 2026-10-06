@@ -89,6 +89,18 @@ export class ClaseSuspendidaService {
     if (!licencia) throw new AppError(...ERRORS.LICENCIA_NOT_FOUND);
     if (licencia.estado !== 'APROBADA') throw new AppError(...ERRORS.LICENCIA_NO_APROBADA);
 
+    // Las licencias del personal no docente no suspenden clases
+    if (!licencia.profesorId) {
+      return {
+        licenciaId: licencia.id,
+        totalAfectadas: 0,
+        creadas: 0,
+        salteadas: 0,
+        detalle: [],
+        nota: 'Justificativo de personal no docente: no genera clases suspendidas.',
+      };
+    }
+
     const afectadas = await this.calcularClasesAfectadas(licencia);
 
     if (afectadas.length === 0) {

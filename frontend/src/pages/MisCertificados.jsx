@@ -101,11 +101,11 @@ export default function MisCertificados() {
  Estas inscripto en
  </p>
  <p className="text-base sm:text-lg font-semibold text-foreground truncate">
- {inscripcionActiva.título?.nombre}
+ {inscripcionActiva.titulo?.nombre}
  </p>
  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
- <span><strong>Resolución:</strong> {inscripcionActiva.resolución?.código}</span>
- <span><strong>Nivel:</strong> {inscripcionActiva.título?.nivel}</span>
+ <span><strong>Resolución:</strong> {inscripcionActiva.resolucion?.codigo}</span>
+ <span><strong>Nivel:</strong> {inscripcionActiva.titulo?.nivel}</span>
  <span><strong>Estado:</strong> {inscripcionActiva.estado}</span>
  </div>
  </div>
@@ -145,7 +145,7 @@ export default function MisCertificados() {
  {TIPOS.find((t) => t.value === cert.tipo)?.label || cert.tipo}
  </p>
  <p className="text-xs text-muted-foreground truncate">
- {cert.título?.nombre}
+ {cert.titulo?.nombre}
  {cert.anioCurricular ? ` - ${cert.anioCurricular.nombre}` : ''}
  </p>
  <p className="text-xs text-muted-foreground mt-0.5">
@@ -200,7 +200,7 @@ function ModalSolicitar({ open, onClose, alumnoId, inscripciones, onCreado }) {
  const [errorDetalle, setErrorDetalle] = useState(null);
 
  const tipoInfo = TIPOS.find((t) => t.value === tipo);
- const aniosDisponibles = inscripcionActiva?.resolución?.aniosCurriculares || [];
+ const aniosDisponibles = inscripcionActiva?.resolucion?.aniosCurriculares || [];
 
  useEffect(() => {
  if (open) {
@@ -275,10 +275,10 @@ function ModalSolicitar({ open, onClose, alumnoId, inscripciones, onCreado }) {
  <div className="p-3 rounded-md bg-muted/50">
  <p className="text-xs text-muted-foreground mb-1">Inscripción</p>
  <p className="text-sm font-semibold text-foreground">
- {inscripcionActiva.título?.nombre}
+ {inscripcionActiva.titulo?.nombre}
  </p>
  <p className="text-xs text-muted-foreground font-medium">
- Resolución {inscripcionActiva.resolución?.código}
+ Resolución {inscripcionActiva.resolucion?.codigo}
  </p>
  </div>
  )}
@@ -311,7 +311,7 @@ function ModalSolicitar({ open, onClose, alumnoId, inscripciones, onCreado }) {
  >
  <option value="">— Selecciona un año —</option>
  {aniosDisponibles.map((a) => (
- <option key={a.id} value={a.id}>{a.nombre} ({a.númeroAnio} ano)</option>
+ <option key={a.id} value={a.id}>{a.nombre} ({a.numeroAnio} ano)</option>
  ))}
  </select>
  </div>
@@ -362,7 +362,7 @@ function ModalSolicitar({ open, onClose, alumnoId, inscripciones, onCreado }) {
  <ul className="text-xs text-destructive space-y-1 max-h-40 overflow-y-auto">
  {errorDetalle.faltantes.map((f, i) => (
  <li key={i}>
- {f.código && <strong>{f.código}</strong>} {f.nombre && `— ${f.nombre}`}
+ {f.codigo && <strong>{f.codigo}</strong>} {f.nombre && `— ${f.nombre}`}
  {f.motivo && ` (${f.motivo})`}
  {f.porcentaje !== undefined && ` — Asistencia: ${f.porcentaje}% (minimo ${f.minimoRequerido}%)`}
  </li>

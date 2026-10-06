@@ -48,10 +48,10 @@ export default function MisMesas() {
  // Traer materias del plan
  try {
  const { default: api } = await import('../services/api');
- const { data: plan } = await api.get(`/curricular/resoluciónes/${insc.resolución.id}/plan`);
+ const { data: plan } = await api.get(`/curricular/resoluciones/${insc.resolucion.id}/plan`);
 
  const statsPorMateria = [];
- for (const año of plan) {
+ for (const ano of plan) {
  for (const m of anio.materias || []) {
  // Buscar cursada
  const cursadasResp = await api.get(`/inscripciones/${insc.id}/cursadas`).catch(() => ({ data: [] }));
@@ -65,7 +65,7 @@ export default function MisMesas() {
  statsPorMateria.push({
  materiaId: m.id,
  nombre: m.nombre,
- código: m.código,
+ codigo: m.codigo,
  anioNombre: anio.nombre,
  estadoCursada: cursada.estado,
  porcentajeAsistencia: pct,
@@ -174,7 +174,7 @@ export default function MisMesas() {
  <h3 className="text-base font-semibold truncate">{m.materia?.nombre}</h3>
  </div>
  <p className="text-xs text-muted-foreground mt-1">
- {m.materia?.código} — {m.materia?.anioCurricular?.númeroAnio} ano
+ {m.materia?.codigo} — {m.materia?.anioCurricular?.numeroAnio} ano
  </p>
  </div>
  {m.miInscripcion && (
@@ -255,7 +255,7 @@ export default function MisMesas() {
  <div className="min-w-0 flex-1">
  <p className="text-sm font-medium truncate">{m.nombre}</p>
  <p className="text-xs text-muted-foreground font-medium">
- {m.anioNombre} — {m.código}
+ {m.anioNombre} — {m.codigo}
  </p>
  </div>
  <div className="flex items-center gap-3 shrink-0">

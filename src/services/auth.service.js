@@ -6,7 +6,7 @@ import { AppError, ERRORS } from '../utils/errors.js';
 const JWT_SECRET = process.env.JWT_SECRET || 'cambiar_este_valor';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
-const ROLES_VALIDOS = ['ADMIN', 'SECRETARIA', 'ALUMNO', 'PROFESOR'];
+const ROLES_VALIDOS = ['ADMIN', 'SECRETARIA', 'ALUMNO', 'PROFESOR', 'BEDEL', 'CELADOR'];
 
 export class AuthService {
   static async login(email, password) {
@@ -19,6 +19,7 @@ export class AuthService {
       include: {
         alumno: { select: { id: true, nombre: true, apellido: true, dni: true } },
         profesor: { select: { id: true, nombre: true, apellido: true, dni: true, estado: true } },
+        empleado: { select: { id: true, nombre: true, apellido: true, dni: true, cargo: true, sector: true } },
       },
     });
 
@@ -41,6 +42,7 @@ export class AuthService {
       rol: usuario.rol,
       alumnoId: usuario.alumnoId || null,
       profesorId: usuario.profesorId || null,
+      empleadoId: usuario.empleadoId || null,
     };
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
@@ -55,14 +57,16 @@ export class AuthService {
         rol: usuario.rol,
         alumnoId: usuario.alumnoId || null,
         profesorId: usuario.profesorId || null,
+        empleadoId: usuario.empleadoId || null,
         alumno: usuario.alumno,
         profesor: usuario.profesor,
+        empleado: usuario.empleado,
       },
     };
   }
 
   static async registrar(data) {
-    const { email, password, nombre, apellido, rol, alumnoId, profesorId } = data;
+    const { email, password, nombre, apellido, rol, alumnoId, profesorId, empleadoId } = data;
 
     if (!email || !password || !nombre || !apellido || !rol) {
       throw new AppError('VALIDATION_ERROR', 'Faltan campos obligatorios.', 400);
@@ -89,6 +93,15 @@ export class AuthService {
 
     if (rol !== 'PROFESOR' && profesorId) {
       throw new AppError('VALIDATION_ERROR', 'Solo los usuarios PROFESOR pueden tener profesorId.', 400);
+    }
+
+    // BEDEL y CELADOR son personal no docente: van vinculados a una ficha de empleado
+    if ((rol === 'BEDEL' || rol === 'CELADOR') && !empleadoId) {
+      throw new AppError('VALIDATION_ERROR', 'Un usuario ' + rol + ' debe estar vinculado a un empleado.', 400);
+    }
+
+    if (empleadoId && rol !== 'BEDEL' && rol !== 'CELADOR') {
+      throw new AppError('VALIDATION_ERROR', 'Solo los usuarios BEDEL o CELADOR pueden tener empleadoId.', 400);
     }
 
     // -----------------------------------------------------------
@@ -129,6 +142,21 @@ export class AuthService {
       }
     }
 
+    // -----------------------------------------------------------
+    // Verificar vinculo empleado (personal no docente)
+    // -----------------------------------------------------------
+    if (empleadoId) {
+      const empleado = await prisma.empleado.findUnique({ where: { id: empleadoId } });
+      if (!empleado) {
+        throw new AppError(...ERRORS.EMPLEADO_NOT_FOUND);
+      }
+
+      const empleadoConUsuario = await prisma.usuario.findUnique({ where: { empleadoId } });
+      if (empleadoConUsuario) {
+        throw new AppError('EMPLEADO_YA_TIENE_USUARIO', 'Ese empleado ya tiene un usuario vinculado.', 409);
+      }
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
     const usuario = await prisma.usuario.create({
@@ -140,10 +168,12 @@ export class AuthService {
         rol,
         alumnoId: alumnoId || null,
         profesorId: profesorId || null,
+        empleadoId: empleadoId || null,
       },
       include: {
         alumno: { select: { id: true, nombre: true, apellido: true, dni: true } },
         profesor: { select: { id: true, nombre: true, apellido: true, dni: true, estado: true } },
+        empleado: { select: { id: true, nombre: true, apellido: true, dni: true, cargo: true, sector: true } },
       },
     });
 
@@ -157,6 +187,7 @@ export class AuthService {
       include: {
         alumno: { select: { id: true, nombre: true, apellido: true, dni: true } },
         profesor: { select: { id: true, nombre: true, apellido: true, dni: true, estado: true } },
+        empleado: { select: { id: true, nombre: true, apellido: true, dni: true, cargo: true, sector: true } },
       },
     });
 
@@ -176,6 +207,7 @@ export class AuthService {
       include: {
         alumno: true,
         profesor: true,
+        empleado: true,
       },
     });
     if (!usuario) throw new AppError('USUARIO_NOT_FOUND', 'Usuario no encontrado.', 404);
@@ -218,11 +250,24 @@ export class AuthService {
           await tx.profesor.update({ where: { id: usuario.profesorId }, data: updateProf });
         }
       }
+      if (usuario.empleadoId && usuario.empleado) {
+        const updateEmp = {};
+        if (data.telefono !== undefined) updateEmp.telefono = data.telefono;
+        if (data.domicilioCalle !== undefined) updateEmp.domicilioCalle = data.domicilioCalle;
+        if (data.domicilioNumero !== undefined) updateEmp.domicilioNumero = data.domicilioNumero;
+        if (data.domicilioCiudad !== undefined) updateEmp.domicilioCiudad = data.domicilioCiudad;
+        if (data.domicilioProvincia !== undefined) updateEmp.domicilioProvincia = data.domicilioProvincia;
+        if (data.domicilioCP !== undefined) updateEmp.domicilioCP = data.domicilioCP;
+        if (Object.keys(updateEmp).length > 0) {
+          await tx.empleado.update({ where: { id: usuario.empleadoId }, data: updateEmp });
+        }
+      }
       return await tx.usuario.findUnique({
         where: { id: userId },
         include: {
           alumno: { select: { id: true, nombre: true, apellido: true, dni: true, domicilioCalle: true, domicilioNumero: true, domicilioCiudad: true, domicilioProvincia: true, domicilioCP: true } },
           profesor: { select: { id: true, nombre: true, apellido: true, dni: true, telefono: true, genero: true, estado: true, domicilioCalle: true, domicilioNumero: true, domicilioCiudad: true, domicilioProvincia: true, domicilioCP: true } },
+          empleado: { select: { id: true, nombre: true, apellido: true, dni: true, telefono: true, cargo: true, sector: true, estado: true, domicilioCalle: true, domicilioNumero: true, domicilioCiudad: true, domicilioProvincia: true, domicilioCP: true } },
         },
       });
     });

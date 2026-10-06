@@ -1,8 +1,14 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { TituloController } from '../controllers/titulo.controller.js';
 import { ResolucionController } from '../controllers/resolucion.controller.js';
+import { requireAuth, requireRole } from '../middlewares/auth.js';
 
 const router = Router();
+
+// Todas las rutas requieren autenticación
+router.use(requireAuth);
+
+const GESTION = ['ADMIN', 'SECRETARIA'];
 
 /**
  * @openapi
@@ -60,12 +66,12 @@ router.get('/', TituloController.listar);
  *       409:
  *         description: Nombre o codigo duplicado
  */
-router.post('/', TituloController.crear);
+router.post('/', requireRole(GESTION), TituloController.crear);
 
 router.get('/:id', TituloController.obtenerPorId);
-router.put('/:id', TituloController.actualizar);
-router.delete('/:id', TituloController.darDeBaja);
-router.post('/:id/resoluciones', TituloController.crearResolucion);
+router.put('/:id', requireRole(GESTION), TituloController.actualizar);
+router.delete('/:id', requireRole(GESTION), TituloController.darDeBaja);
+router.post('/:id/resoluciones', requireRole(GESTION), TituloController.crearResolucion);
 router.get('/:tituloId/resoluciones', ResolucionController.listarPorTitulo);
 
 export default router;

@@ -41,9 +41,9 @@ export default function ProfesorDetalle() {
  const [tab, setTab] = useState('datos');
  const [editando, setEditando] = useState(false);
  const [form, setForm] = useState({});
- const [modalTítulo, setModalTítulo] = useState(false);
+ const [modalTitulo, setModalTitulo] = useState(false);
  const [modalMateria, setModalMateria] = useState(false);
- const [nuevoTítulo, setNuevoTítulo] = useState({ tipo: 'UNIVERSITARIO', nombre: '', institución: '', anioEgreso: new Date().getFullYear() });
+ const [nuevoTitulo, setNuevoTitulo] = useState({ tipo: 'UNIVERSITARIO', nombre: '', institucion: '', anioEgreso: new Date().getFullYear() });
  const [nuevaMateria, setNuevaMateria] = useState({ materiaId: '', diaSemana: 1, horaInicio: '08:00', horaFin: '10:00', aula: '' });
  const [materiasDisponibles, setMateriasDisponibles] = useState([]);
  const [aulasDisponibles, setAulasDisponibles] = useState([]);
@@ -85,13 +85,13 @@ export default function ProfesorDetalle() {
  const handleGuardar = async () => {
  try {
  await profesoresService.actualizar(id, {
- teléfono: form.teléfono,
+ telefono: form.telefono,
  email: form.email,
- género: form.género,
+ genero: form.genero,
  estado: form.estado,
  tieneCUD: form.tieneCUD,
  domicilioCalle: form.domicilioCalle,
- domicilioNúmero: form.domicilioNúmero,
+ domicilioNumero: form.domicilioNumero,
  domicilioCiudad: form.domicilioCiudad,
  domicilioProvincia: form.domicilioProvincia,
  domicilioCP: form.domicilioCP,
@@ -104,23 +104,23 @@ export default function ProfesorDetalle() {
  }
  };
 
- const handleAgregarTítulo = async (e) => {
+ const handleAgregarTitulo = async (e) => {
  e.preventDefault();
  try {
- await profesoresService.agregarTítulo(id, nuevoTítulo);
+ await profesoresService.agregarTitulo(id, nuevoTitulo);
  toast.success('Título agregado');
- setModalTítulo(false);
- setNuevoTítulo({ tipo: 'UNIVERSITARIO', nombre: '', institución: '', anioEgreso: new Date().getFullYear() });
+ setModalTitulo(false);
+ setNuevoTitulo({ tipo: 'UNIVERSITARIO', nombre: '', institucion: '', anioEgreso: new Date().getFullYear() });
  cargar();
  } catch (error) {
  toast.error(error.response?.data?.message || 'Error');
  }
  };
 
- const handleEliminarTítulo = async (títuloId) => {
+ const handleEliminarTitulo = async (tituloId) => {
  if (!confirm('Eliminar este título?')) return;
  try {
- await profesoresService.eliminarTítulo(id, títuloId);
+ await profesoresService.eliminarTitulo(id, tituloId);
  toast.success('Título eliminado');
  cargar();
  } catch (error) {
@@ -233,19 +233,19 @@ export default function ProfesorDetalle() {
  </div>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
  <div><label className="text-sm text-muted-foreground">Teléfono</label>
- {editando ? <Input value={form.teléfono || ''} onChange={(e) => setForm({...form, teléfono: e.target.value})} /> : <p className="mt-1">{profesor.teléfono || '—'}</p>}
+ {editando ? <Input value={form.telefono || ''} onChange={(e) => setForm({...form, telefono: e.target.value})} /> : <p className="mt-1">{profesor.telefono || '—'}</p>}
  </div>
  <div><label className="text-sm text-muted-foreground">Email</label>
  {editando ? <Input value={form.email || ''} onChange={(e) => setForm({...form, email: e.target.value})} /> : <p className="mt-1">{profesor.email}</p>}
  </div>
  <div><label className="text-sm text-muted-foreground">Género</label>
  {editando ? (
- <select value={form.género || 'INDISTINTO'} onChange={(e) => setForm({...form, género: e.target.value})} className="w-full h-10 px-3 rounded-md border border-border bg-background">
+ <select value={form.genero || 'INDISTINTO'} onChange={(e) => setForm({...form, genero: e.target.value})} className="w-full h-10 px-3 rounded-md border border-border bg-background">
  <option value="M">Masculino</option>
  <option value="F">Femenino</option>
  <option value="INDISTINTO">Indistinto</option>
  </select>
- ) : <p className="mt-1">{profesor.género || '—'}</p>}
+ ) : <p className="mt-1">{profesor.genero || '—'}</p>}
  </div>
  <div><label className="text-sm text-muted-foreground">Estado</label>
  {editando ? (
@@ -260,13 +260,13 @@ export default function ProfesorDetalle() {
  {editando ? (
  <div className="grid grid-cols-2 gap-2 mt-1">
  <Input placeholder="Calle" value={form.domicilioCalle || ''} onChange={(e) => setForm({...form, domicilioCalle: e.target.value})} />
- <Input placeholder="Número" value={form.domicilioNúmero || ''} onChange={(e) => setForm({...form, domicilioNúmero: e.target.value})} />
+ <Input placeholder="Número" value={form.domicilioNumero || ''} onChange={(e) => setForm({...form, domicilioNumero: e.target.value})} />
  <Input placeholder="Ciudad" value={form.domicilioCiudad || ''} onChange={(e) => setForm({...form, domicilioCiudad: e.target.value})} />
  <Input placeholder="Provincia" value={form.domicilioProvincia || ''} onChange={(e) => setForm({...form, domicilioProvincia: e.target.value})} />
  <Input placeholder="CP" value={form.domicilioCP || ''} onChange={(e) => setForm({...form, domicilioCP: e.target.value})} className="col-span-2" />
  </div>
  ) : (
- <p className="mt-1">{profesor.domicilioCalle ? `${profesor.domicilioCalle} ${profesor.domicilioNúmero || ''}, ${profesor.domicilioCiudad || ''}` : '—'}</p>
+ <p className="mt-1">{profesor.domicilioCalle ? `${profesor.domicilioCalle} ${profesor.domicilioNumero || ''}, ${profesor.domicilioCiudad || ''}` : '—'}</p>
  )}
  </div>
  </div>
@@ -276,10 +276,10 @@ export default function ProfesorDetalle() {
  {tab === 'títulos' && (
  <Card>
  <div className="p-4 border-b border-border flex justify-between items-center">
- <h2 className="text-lg font-semibold">Títulos ({profesor.títulos?.length || 0})</h2>
- {isAdmin && <Button size="sm" onClick={() => setModalTítulo(true)}><Plus className="w-4 h-4 mr-1" /> Agregar</Button>}
+ <h2 className="text-lg font-semibold">Títulos ({profesor.titulos?.length || 0})</h2>
+ {isAdmin && <Button size="sm" onClick={() => setModalTitulo(true)}><Plus className="w-4 h-4 mr-1" /> Agregar</Button>}
  </div>
- {!profesor.títulos || profesor.títulos.length === 0 ? (
+ {!profesor.titulos || profesor.titulos.length === 0 ? (
  <p className="p-6 text-center text-muted-foreground">Sin títulos cargados</p>
  ) : (
  <Table>
@@ -287,14 +287,14 @@ export default function ProfesorDetalle() {
  <TableRow><TableHead>Tipo</TableHead><TableHead>Nombre</TableHead><TableHead>Institución</TableHead><TableHead>Año</TableHead><TableHead></TableHead></TableRow>
  </TableHeader>
  <TableBody>
- {profesor.títulos.map((t) => (
+ {profesor.titulos.map((t) => (
  <TableRow key={t.id}>
  <TableCell><Badge variant="secondary">{t.tipo}</Badge></TableCell>
  <TableCell>{t.nombre}</TableCell>
- <TableCell>{t.institución}</TableCell>
+ <TableCell>{t.institucion}</TableCell>
  <TableCell>{t.anioEgreso}</TableCell>
  <TableCell className="text-right">
- {isAdmin && <Button variant="ghost" size="sm" onClick={() => handleEliminarTítulo(t.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>}
+ {isAdmin && <Button variant="ghost" size="sm" onClick={() => handleEliminarTitulo(t.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>}
  </TableCell>
  </TableRow>
  ))}
@@ -320,7 +320,7 @@ export default function ProfesorDetalle() {
  <TableBody>
  {profesor.materias.map((mp) => (
  <TableRow key={mp.id}>
- <TableCell className="font-medium">{mp.materia?.nombre} <span className="text-muted-foreground text-xs">({mp.materia?.código})</span></TableCell>
+ <TableCell className="font-medium">{mp.materia?.nombre} <span className="text-muted-foreground text-xs">({mp.materia?.codigo})</span></TableCell>
  <TableCell>{DIAS[mp.diaSemana]}</TableCell>
  <TableCell>{mp.horaInicio} - {mp.horaFin}</TableCell>
  <TableCell>{mp.aula || '—'}</TableCell>
@@ -370,19 +370,19 @@ export default function ProfesorDetalle() {
  </Card>
  )}
 
- <Modal open={modalTítulo} onClose={() => setModalTítulo(false)} title="Agregar Título">
- <form onSubmit={handleAgregarTítulo} className="space-y-4">
+ <Modal open={modalTitulo} onClose={() => setModalTitulo(false)} title="Agregar Título">
+ <form onSubmit={handleAgregarTitulo} className="space-y-4">
  <div>
  <label className="text-sm font-semibold">Tipo</label>
- <select value={nuevoTítulo.tipo} onChange={(e) => setNuevoTítulo({...nuevoTítulo, tipo: e.target.value})} className="w-full h-10 px-3 rounded-md border border-border bg-background">
+ <select value={nuevoTitulo.tipo} onChange={(e) => setNuevoTitulo({...nuevoTitulo, tipo: e.target.value})} className="w-full h-10 px-3 rounded-md border border-border bg-background">
  <option value="UNIVERSITARIO">Universitario</option>
  <option value="TERCIARIO">Terciario</option>
  </select>
  </div>
- <div><label className="text-sm font-semibold">Nombre</label><Input value={nuevoTítulo.nombre} onChange={(e) => setNuevoTítulo({...nuevoTítulo, nombre: e.target.value})} required /></div>
- <div><label className="text-sm font-semibold">Institución</label><Input value={nuevoTítulo.institución} onChange={(e) => setNuevoTítulo({...nuevoTítulo, institución: e.target.value})} required /></div>
- <div><label className="text-sm font-semibold">Año de egreso</label><Input type="number" value={nuevoTítulo.anioEgreso} onChange={(e) => setNuevoTítulo({...nuevoTítulo, anioEgreso: e.target.value})} required /></div>
- <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setModalTítulo(false)}>Cancelar</Button><Button type="submit">Agregar</Button></div>
+ <div><label className="text-sm font-semibold">Nombre</label><Input value={nuevoTitulo.nombre} onChange={(e) => setNuevoTitulo({...nuevoTitulo, nombre: e.target.value})} required /></div>
+ <div><label className="text-sm font-semibold">Institución</label><Input value={nuevoTitulo.institucion} onChange={(e) => setNuevoTitulo({...nuevoTitulo, institucion: e.target.value})} required /></div>
+ <div><label className="text-sm font-semibold">Año de egreso</label><Input type="number" value={nuevoTitulo.anioEgreso} onChange={(e) => setNuevoTitulo({...nuevoTitulo, anioEgreso: e.target.value})} required /></div>
+ <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setModalTitulo(false)}>Cancelar</Button><Button type="submit">Agregar</Button></div>
  </form>
  </Modal>
 
@@ -399,7 +399,7 @@ export default function ProfesorDetalle() {
  <option value="">Selecciona una materia...</option>
  {materiasDisponibles.map((m) => (
  <option key={m.id} value={m.id}>
- {m.código} — {m.nombre} ({m.anioCurricular?.númeroAnio} año {m.anioCurricular?.resolución?.título?.nombre})
+ {m.codigo} — {m.nombre} ({m.anioCurricular?.numeroAnio} año {m.anioCurricular?.resolucion?.titulo?.nombre})
  </option>
  ))}
  </select>

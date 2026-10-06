@@ -30,8 +30,8 @@ export default function Certificados() {
  const [cargando, setCargando] = useState(true);
 
  // Navegacion
- const [títuloSel, setTítuloSel] = useState(null);
- const [resoluciónSel, setResoluciónSel] = useState(null);
+ const [tituloSel, setTituloSel] = useState(null);
+ const [resolucionSel, setResolucionSel] = useState(null);
  const [anioSel, setAnioSel] = useState(null);
  const [alumnoSel, setAlumnoSel] = useState(null);
 
@@ -72,11 +72,11 @@ export default function Certificados() {
  }, [busqueda]);
 
  const resetNavegacion = () => {
- setTítuloSel(null); setResoluciónSel(null); setAnioSel(null);
+ setTituloSel(null); setResolucionSel(null); setAnioSel(null);
  setAlumnoSel(null); setBusqueda(''); setResultadosBusqueda(null);
  };
 
- const nivelActual = alumnoSel ? 4 : anioSel ? 3 : resoluciónSel ? 2 : títuloSel ? 1 : 0;
+ const nivelActual = alumnoSel ? 4 : anioSel ? 3 : resolucionSel ? 2 : tituloSel ? 1 : 0;
 
  return (
  <div className="space-y-6">
@@ -94,25 +94,25 @@ export default function Certificados() {
  <Home className="w-4 h-4" />
  Carreras
  </button>
- {títuloSel && (
+ {tituloSel && (
  <>
  <ChevronRight className="w-4 h-4 text-muted-foreground" />
  <button
- onClick={() => { setResoluciónSel(null); setAnioSel(null); setAlumnoSel(null); }}
- className={`${resoluciónSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
+ onClick={() => { setResolucionSel(null); setAnioSel(null); setAlumnoSel(null); }}
+ className={`${resolucionSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
  >
- {títuloSel.nombre}
+ {tituloSel.nombre}
  </button>
  </>
  )}
- {resoluciónSel && (
+ {resolucionSel && (
  <>
  <ChevronRight className="w-4 h-4 text-muted-foreground" />
  <button
  onClick={() => { setAnioSel(null); setAlumnoSel(null); }}
  className={`${anioSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
  >
- Res. {resoluciónSel.código}
+ Res. {resolucionSel.codigo}
  </button>
  </>
  )}
@@ -177,7 +177,7 @@ export default function Certificados() {
  {nivelActual === 0 && (
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
  {agrupados.map((t) => (
- <button key={t.títuloId} onClick={() => setTítuloSel(t)} className="text-left">
+ <button key={t.tituloId} onClick={() => setTituloSel(t)} className="text-left">
  <Card className="hover:border-primary hover:shadow-md transition-all h-full">
  <div className="p-5">
  <div className="flex items-start gap-3 mb-3">
@@ -203,17 +203,17 @@ export default function Certificados() {
  </div>
  )}
 
- {/* Nivel 1: Resoluciónes */}
- {nivelActual === 1 && títuloSel && (
+ {/* Nivel 1: Resoluciones */}
+ {nivelActual === 1 && tituloSel && (
  <div className="space-y-3">
  <Button variant="ghost" size="sm" onClick={resetNavegacion}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
- <h2 className="text-lg font-semibold">{títuloSel.nombre}</h2>
- {títuloSel.resoluciónes.map((r) => (
- <button key={r.resoluciónId} onClick={() => setResoluciónSel(r)} className="text-left w-full">
+ <h2 className="text-lg font-semibold">{tituloSel.nombre}</h2>
+ {tituloSel.resoluciones.map((r) => (
+ <button key={r.resolucionId} onClick={() => setResolucionSel(r)} className="text-left w-full">
  <Card className="hover:border-primary hover:shadow-md transition-all">
  <div className="p-5 flex items-center justify-between gap-3">
  <div>
- <h3 className="text-base font-semibold">Resolución {r.código}</h3>
+ <h3 className="text-base font-semibold">Resolución {r.codigo}</h3>
  <p className="text-xs text-muted-foreground mt-1">{r.anios.length} anos</p>
  </div>
  <div className="flex items-center gap-3">
@@ -228,12 +228,12 @@ export default function Certificados() {
  )}
 
  {/* Nivel 2: Anos */}
- {nivelActual === 2 && resoluciónSel && (
+ {nivelActual === 2 && resolucionSel && (
  <div className="space-y-3">
- <Button variant="ghost" size="sm" onClick={() => setResoluciónSel(null)}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
- <h2 className="text-lg font-semibold">Resolución {resoluciónSel.código}</h2>
+ <Button variant="ghost" size="sm" onClick={() => setResolucionSel(null)}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
+ <h2 className="text-lg font-semibold">Resolución {resolucionSel.codigo}</h2>
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
- {resoluciónSel.anios.map((a) => (
+ {resolucionSel.anios.map((a) => (
  <button key={a.anioId} onClick={() => setAnioSel(a)} className="text-left">
  <Card className="hover:border-primary hover:shadow-md transition-all h-full">
  <div className="p-5">
@@ -243,7 +243,7 @@ export default function Certificados() {
  </div>
  <div>
  <h3 className="text-base font-semibold">{a.nombre}</h3>
- <p className="text-xs text-muted-foreground mt-1">{a.númeroAnio} ano</p>
+ <p className="text-xs text-muted-foreground mt-1">{a.numeroAnio} ano</p>
  </div>
  </div>
  <div className="flex items-center justify-between pt-3 border-t border-border">
@@ -375,9 +375,9 @@ function PanelCertificadosAlumno({ alumno, onVolver, onActualizar }) {
  <div className="mt-3 p-3 rounded-md bg-muted/50 flex items-start gap-2">
  <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
  <div className="text-xs text-muted-foreground font-medium">
- <strong>Inscripto en:</strong> {inscripcionActiva.título?.nombre}
+ <strong>Inscripto en:</strong> {inscripcionActiva.titulo?.nombre}
  <span className="mx-1"></span>
- <strong>Resolución:</strong> {inscripcionActiva.resolución?.código}
+ <strong>Resolución:</strong> {inscripcionActiva.resolucion?.codigo}
  </div>
  </div>
  )}
@@ -415,7 +415,7 @@ function PanelCertificadosAlumno({ alumno, onVolver, onActualizar }) {
  </TableCell>
  <TableCell className="text-sm">
  <div className="min-w-0">
- <p className="truncate">{cert.título?.nombre}</p>
+ <p className="truncate">{cert.titulo?.nombre}</p>
  {cert.anioCurricular && (
  <p className="text-xs text-muted-foreground font-medium">{cert.anioCurricular.nombre}</p>
  )}
@@ -474,7 +474,7 @@ function ModalEmitir({ open, onClose, alumno, inscripciones, onEmitido }) {
  const [errorDetalle, setErrorDetalle] = useState(null);
 
  const tipoInfo = TIPOS.find((t) => t.value === tipo);
- const aniosDisponibles = inscripcionActiva?.resolución?.aniosCurriculares || [];
+ const aniosDisponibles = inscripcionActiva?.resolucion?.aniosCurriculares || [];
 
  useEffect(() => {
  if (open) {
@@ -546,7 +546,7 @@ function ModalEmitir({ open, onClose, alumno, inscripciones, onEmitido }) {
  <p className="text-xs text-muted-foreground font-medium">Alumno</p>
  <p className="text-sm font-semibold">{alumno.apellido}, {alumno.nombre} — DNI {alumno.dni}</p>
  {inscripcionActiva && (
- <p className="text-xs text-muted-foreground mt-1">Inscripto en: {inscripcionActiva.título?.nombre}</p>
+ <p className="text-xs text-muted-foreground mt-1">Inscripto en: {inscripcionActiva.titulo?.nombre}</p>
  )}
  </div>
 
@@ -574,7 +574,7 @@ function ModalEmitir({ open, onClose, alumno, inscripciones, onEmitido }) {
  >
  <option value="">— Selecciona un año —</option>
  {aniosDisponibles.map((a) => (
- <option key={a.id} value={a.id}>{a.nombre} ({a.númeroAnio} ano)</option>
+ <option key={a.id} value={a.id}>{a.nombre} ({a.numeroAnio} ano)</option>
  ))}
  </select>
  </div>
@@ -619,7 +619,7 @@ function ModalEmitir({ open, onClose, alumno, inscripciones, onEmitido }) {
  <ul className="text-xs text-destructive space-y-1 max-h-40 overflow-y-auto">
  {errorDetalle.faltantes.map((f, i) => (
  <li key={i}>
- {f.código && <strong>{f.código}</strong>} {f.nombre && `— ${f.nombre}`}
+ {f.codigo && <strong>{f.codigo}</strong>} {f.nombre && `— ${f.nombre}`}
  {f.motivo && ` (${f.motivo})`}
  {f.porcentaje !== undefined && ` — Asistencia: ${f.porcentaje}% (minimo ${f.minimoRequerido}%)`}
  </li>

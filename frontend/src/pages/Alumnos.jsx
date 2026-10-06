@@ -18,8 +18,8 @@ export default function Alumnos() {
  const [cargando, setCargando] = useState(true);
 
  // Estado de navegacion
- const [títuloSel, setTítuloSel] = useState(null);
- const [resoluciónSel, setResoluciónSel] = useState(null);
+ const [tituloSel, setTituloSel] = useState(null);
+ const [resolucionSel, setResolucionSel] = useState(null);
  const [anioSel, setAnioSel] = useState(null);
 
  // Modales
@@ -71,8 +71,8 @@ export default function Alumnos() {
  }, [busqueda]);
 
  const resetNavegacion = () => {
- setTítuloSel(null);
- setResoluciónSel(null);
+ setTituloSel(null);
+ setResolucionSel(null);
  setAnioSel(null);
  setBusqueda('');
  setResultadosBusqueda(null);
@@ -91,7 +91,7 @@ export default function Alumnos() {
  };
 
  // Determinar el nivel actual
- const nivelActual = anioSel ? 3 : resoluciónSel ? 2 : títuloSel ? 1 : 0;
+ const nivelActual = anioSel ? 3 : resolucionSel ? 2 : tituloSel ? 1 : 0;
 
  return (
  <div className="space-y-6">
@@ -116,25 +116,25 @@ export default function Alumnos() {
  <Home className="w-4 h-4" />
  Carreras
  </button>
- {títuloSel && (
+ {tituloSel && (
  <>
  <ChevronRight className="w-4 h-4 text-muted-foreground" />
  <button
- onClick={() => { setResoluciónSel(null); setAnioSel(null); }}
- className={`${resoluciónSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
+ onClick={() => { setResolucionSel(null); setAnioSel(null); }}
+ className={`${resolucionSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
  >
- {títuloSel.nombre}
+ {tituloSel.nombre}
  </button>
  </>
  )}
- {resoluciónSel && (
+ {resolucionSel && (
  <>
  <ChevronRight className="w-4 h-4 text-muted-foreground" />
  <button
  onClick={() => setAnioSel(null)}
  className={`${anioSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
  >
- Res. {resoluciónSel.código}
+ Res. {resolucionSel.codigo}
  </button>
  </>
  )}
@@ -215,8 +215,8 @@ export default function Alumnos() {
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
  {agrupados.map((t) => (
  <button
- key={t.títuloId}
- onClick={() => setTítuloSel(t)}
+ key={t.tituloId}
+ onClick={() => setTituloSel(t)}
  className="text-left"
  >
  <Card className="hover:border-primary hover:shadow-md transition-all h-full">
@@ -248,30 +248,30 @@ export default function Alumnos() {
  </div>
  )}
 
- {/* Nivel 1: Resoluciónes del título */}
- {nivelActual === 1 && títuloSel && (
+ {/* Nivel 1: Resoluciones del título */}
+ {nivelActual === 1 && tituloSel && (
  <div className="space-y-3">
  <Button variant="ghost" size="sm" onClick={resetNavegacion} className="mb-2">
  <ArrowLeft className="w-4 h-4 mr-2" />
  Volver a carreras
  </Button>
  <h2 className="text-lg font-semibold text-foreground">
- {títuloSel.nombre}
+ {tituloSel.nombre}
  </h2>
  <p className="text-sm text-muted-foreground mb-4">
- Seleccioná una Resolución para ver sus anos
+ Seleccioná una Resolución para ver sus años
  </p>
- {títuloSel.resoluciónes.map((r) => (
+ {tituloSel.resoluciones.map((r) => (
  <button
- key={r.resoluciónId}
- onClick={() => setResoluciónSel(r)}
+ key={r.resolucionId}
+ onClick={() => setResolucionSel(r)}
  className="text-left w-full"
  >
  <Card className="hover:border-primary hover:shadow-md transition-all">
  <div className="p-5 flex items-center justify-between gap-3">
  <div className="min-w-0">
  <h3 className="text-base font-semibold text-foreground">
- Resolución {r.código}
+ Resolución {r.codigo}
  </h3>
  <p className="text-xs text-muted-foreground mt-1">
  {r.anios.length} ano{r.anios.length !== 1 ? 's' : ''} curriculares
@@ -291,21 +291,21 @@ export default function Alumnos() {
  </div>
  )}
 
- {/* Nivel 2: Anos de la resolución */}
- {nivelActual === 2 && resoluciónSel && (
+ {/* Nivel 2: Años de la resolución */}
+ {nivelActual === 2 && resolucionSel && (
  <div className="space-y-3">
- <Button variant="ghost" size="sm" onClick={() => setResoluciónSel(null)} className="mb-2">
+ <Button variant="ghost" size="sm" onClick={() => setResolucionSel(null)} className="mb-2">
  <ArrowLeft className="w-4 h-4 mr-2" />
- Volver a resoluciónes
+ Volver a resoluciones
  </Button>
  <h2 className="text-lg font-semibold text-foreground">
- Resolución {resoluciónSel.código}
+ Resolución {resolucionSel.codigo}
  </h2>
  <p className="text-sm text-muted-foreground mb-4">
  Selecciona un año para ver sus alumnos
  </p>
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
- {resoluciónSel.anios.map((a) => (
+ {resolucionSel.anios.map((a) => (
  <button
  key={a.anioId}
  onClick={() => setAnioSel(a)}
@@ -322,7 +322,7 @@ export default function Alumnos() {
  {a.nombre}
  </h3>
  <p className="text-xs text-muted-foreground mt-1">
- {a.númeroAnio} ano
+ {a.numeroAnio} ano
  </p>
  </div>
  </div>
@@ -463,10 +463,10 @@ export default function Alumnos() {
 function ModalCrearAlumno({ open, onClose, onCreado }) {
  const [form, setForm] = useState({
  dni: '', nombre: '', apellido: '', email: '', fechaNacimiento: '',
- domicilioCalle: '', domicilioNúmero: '', domicilioCiudad: '',
+ domicilioCalle: '', domicilioNumero: '', domicilioCiudad: '',
  domicilioProvincia: '', domicilioCP: '',
- tienePartidaNacimiento: false, tieneAnalíticoSecundario: false,
- tieneAnalíticoIncompleto: false, tieneCertificado7mo: false, tieneCUD: false,
+ tienePartidaNacimiento: false, tieneAnaliticoSecundario: false,
+ tieneAnaliticoIncompleto: false, tieneCertificado7mo: false, tieneCUD: false,
  });
  const [cargando, setCargando] = useState(false);
 
@@ -474,10 +474,10 @@ function ModalCrearAlumno({ open, onClose, onCreado }) {
  if (open) {
  setForm({
  dni: '', nombre: '', apellido: '', email: '', fechaNacimiento: '',
- domicilioCalle: '', domicilioNúmero: '', domicilioCiudad: '',
+ domicilioCalle: '', domicilioNumero: '', domicilioCiudad: '',
  domicilioProvincia: '', domicilioCP: '',
- tienePartidaNacimiento: false, tieneAnalíticoSecundario: false,
- tieneAnalíticoIncompleto: false, tieneCertificado7mo: false, tieneCUD: false,
+ tienePartidaNacimiento: false, tieneAnaliticoSecundario: false,
+ tieneAnaliticoIncompleto: false, tieneCertificado7mo: false, tieneCUD: false,
  });
  }
  }, [open]);
@@ -516,7 +516,7 @@ function ModalCrearAlumno({ open, onClose, onCreado }) {
  <h3 className="text-sm font-semibold mb-3">Domicilio (opcional)</h3>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <Input label="Calle" value={form.domicilioCalle} onChange={(v) => setForm({ ...form, domicilioCalle: v })} />
- <Input label="Número" value={form.domicilioNúmero} onChange={(v) => setForm({ ...form, domicilioNúmero: v })} />
+ <Input label="Número" value={form.domicilioNumero} onChange={(v) => setForm({ ...form, domicilioNumero: v })} />
  <Input label="Ciudad" value={form.domicilioCiudad} onChange={(v) => setForm({ ...form, domicilioCiudad: v })} />
  <Input label="Provincia" value={form.domicilioProvincia} onChange={(v) => setForm({ ...form, domicilioProvincia: v })} />
  <Input label="Código Postal" value={form.domicilioCP} onChange={(v) => setForm({ ...form, domicilioCP: v })} />
@@ -527,8 +527,8 @@ function ModalCrearAlumno({ open, onClose, onCreado }) {
  <h3 className="text-sm font-semibold mb-3">Documentación</h3>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
  <CheckField label="Partida de nacimiento" checked={form.tienePartidaNacimiento} onChange={(v) => setForm({ ...form, tienePartidaNacimiento: v })} />
- <CheckField label="Analítico secundario completo" checked={form.tieneAnalíticoSecundario} onChange={(v) => setForm({ ...form, tieneAnalíticoSecundario: v })} />
- <CheckField label="Analítico secundario incompleto" checked={form.tieneAnalíticoIncompleto} onChange={(v) => setForm({ ...form, tieneAnalíticoIncompleto: v })} />
+ <CheckField label="Analítico secundario completo" checked={form.tieneAnaliticoSecundario} onChange={(v) => setForm({ ...form, tieneAnaliticoSecundario: v })} />
+ <CheckField label="Analítico secundario incompleto" checked={form.tieneAnaliticoIncompleto} onChange={(v) => setForm({ ...form, tieneAnaliticoIncompleto: v })} />
  <CheckField label="Certificado 7 grado" checked={form.tieneCertificado7mo} onChange={(v) => setForm({ ...form, tieneCertificado7mo: v })} />
  <CheckField label="CUD" checked={form.tieneCUD} onChange={(v) => setForm({ ...form, tieneCUD: v })} />
  </div>
@@ -558,12 +558,12 @@ function ModalEditarAlumno({ alumno, onClose, onEditado }) {
  dni: alumno.dni || '', nombre: alumno.nombre || '', apellido: alumno.apellido || '',
  email: alumno.email || '',
  fechaNacimiento: alumno.fechaNacimiento ? new Date(alumno.fechaNacimiento).toISOString().split('T')[0] : '',
- domicilioCalle: alumno.domicilioCalle || '', domicilioNúmero: alumno.domicilioNúmero || '',
+ domicilioCalle: alumno.domicilioCalle || '', domicilioNumero: alumno.domicilioNumero || '',
  domicilioCiudad: alumno.domicilioCiudad || '', domicilioProvincia: alumno.domicilioProvincia || '',
  domicilioCP: alumno.domicilioCP || '',
  tienePartidaNacimiento: alumno.tienePartidaNacimiento || false,
- tieneAnalíticoSecundario: alumno.tieneAnalíticoSecundario || false,
- tieneAnalíticoIncompleto: alumno.tieneAnalíticoIncompleto || false,
+ tieneAnaliticoSecundario: alumno.tieneAnaliticoSecundario || false,
+ tieneAnaliticoIncompleto: alumno.tieneAnaliticoIncompleto || false,
  tieneCertificado7mo: alumno.tieneCertificado7mo || false,
  tieneCUD: alumno.tieneCUD || false,
  });
@@ -608,7 +608,7 @@ function ModalEditarAlumno({ alumno, onClose, onEditado }) {
  <h3 className="text-sm font-semibold mb-3">Domicilio</h3>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <Input label="Calle" value={form.domicilioCalle} onChange={(v) => setForm({ ...form, domicilioCalle: v })} />
- <Input label="Número" value={form.domicilioNúmero} onChange={(v) => setForm({ ...form, domicilioNúmero: v })} />
+ <Input label="Número" value={form.domicilioNumero} onChange={(v) => setForm({ ...form, domicilioNumero: v })} />
  <Input label="Ciudad" value={form.domicilioCiudad} onChange={(v) => setForm({ ...form, domicilioCiudad: v })} />
  <Input label="Provincia" value={form.domicilioProvincia} onChange={(v) => setForm({ ...form, domicilioProvincia: v })} />
  <Input label="Código Postal" value={form.domicilioCP} onChange={(v) => setForm({ ...form, domicilioCP: v })} />
@@ -619,8 +619,8 @@ function ModalEditarAlumno({ alumno, onClose, onEditado }) {
  <h3 className="text-sm font-semibold mb-3">Documentación</h3>
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
  <CheckField label="Partida de nacimiento" checked={form.tienePartidaNacimiento} onChange={(v) => setForm({ ...form, tienePartidaNacimiento: v })} />
- <CheckField label="Analítico secundario completo" checked={form.tieneAnalíticoSecundario} onChange={(v) => setForm({ ...form, tieneAnalíticoSecundario: v })} />
- <CheckField label="Analítico secundario incompleto" checked={form.tieneAnalíticoIncompleto} onChange={(v) => setForm({ ...form, tieneAnalíticoIncompleto: v })} />
+ <CheckField label="Analítico secundario completo" checked={form.tieneAnaliticoSecundario} onChange={(v) => setForm({ ...form, tieneAnaliticoSecundario: v })} />
+ <CheckField label="Analítico secundario incompleto" checked={form.tieneAnaliticoIncompleto} onChange={(v) => setForm({ ...form, tieneAnaliticoIncompleto: v })} />
  <CheckField label="Certificado 7 grado" checked={form.tieneCertificado7mo} onChange={(v) => setForm({ ...form, tieneCertificado7mo: v })} />
  <CheckField label="CUD" checked={form.tieneCUD} onChange={(v) => setForm({ ...form, tieneCUD: v })} />
  </div>
@@ -643,7 +643,7 @@ function ModalEditarAlumno({ alumno, onClose, onEditado }) {
 export function ModalDetalleAlumno({ alumnoId, onClose }) {
  const { isSecretaria } = useAuth();
  const [alumno, setAlumno] = useState(null);
- const [admisión, setAdmisión] = useState(null);
+ const [admision, setAdmision] = useState(null);
  const [historia, setHistoria] = useState(null);
  const [certificados, setCertificados] = useState([]);
  const [cargando, setCargando] = useState(false);
@@ -654,21 +654,21 @@ export function ModalDetalleAlumno({ alumnoId, onClose }) {
  setCargando(true);
  Promise.all([
  alumnosService.obtenerPorId(alumnoId),
- alumnosService.obtenerAdmisión(alumnoId).catch(() => null),
+ alumnosService.obtenerAdmision(alumnoId).catch(() => null),
  alumnosService.historiaAcademica(alumnoId).catch(() => null),
  alumnosService.listarCertificados(alumnoId).catch(() => []),
  ])
  .then(([a, adm, hist, certs]) => {
- setAlumno(a); setAdmisión(adm); setHistoria(hist); setCertificados(certs);
+ setAlumno(a); setAdmision(adm); setHistoria(hist); setCertificados(certs);
  })
  .catch(() => toast.error('Error al cargar detalle'))
  .finally(() => setCargando(false));
  } else {
- setAlumno(null); setAdmisión(null); setHistoria(null); setCertificados([]);
+ setAlumno(null); setAdmision(null); setHistoria(null); setCertificados([]);
  }
  }, [alumnoId]);
 
- const handleSolicitarAnalítico = async () => {
+ const handleSolicitarAnalitico = async () => {
  if (!confirm(`\u00bfSolicitar el anal\u00edtico (t\u00edtulo completo) para ${alumno.apellido}, ${alumno.nombre}?`)) return;
  setSolicitando(true);
  try {
@@ -744,17 +744,17 @@ export function ModalDetalleAlumno({ alumnoId, onClose }) {
  </div>
  </div>
 
- {admisión && (
+ {admision && (
  <div className="p-3 rounded-md bg-muted/50">
  <div className="flex items-center justify-between mb-2">
  <p className="text-sm font-semibold">Estado de Admisión</p>
- <Badge variant={admisión.puedeInscribirse ? 'success' : 'danger'}>
- {admisión.puedeInscribirse ? 'Habilitado' : 'No habilitado'}
+ <Badge variant={admision.puedeInscribirse ? 'success' : 'danger'}>
+ {admision.puedeInscribirse ? 'Habilitado' : 'No habilitado'}
  </Badge>
  </div>
- {admisión.faltantes?.length > 0 && (
+ {admision.faltantes?.length > 0 && (
  <ul className="text-xs text-muted-foreground list-disc list-inside space-y-0.5">
- {admisión.mensajes?.map((m, i) => <li key={i}>{m}</li>)}
+ {admision.mensajes?.map((m, i) => <li key={i}>{m}</li>)}
  </ul>
  )}
  </div>
@@ -767,8 +767,8 @@ export function ModalDetalleAlumno({ alumnoId, onClose }) {
  {alumno.inscripciones.map((i) => (
  <div key={i.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-muted/50 rounded-md">
  <div className="min-w-0">
- <p className="text-sm font-medium truncate">{i.título?.nombre}</p>
- <p className="text-xs text-muted-foreground font-medium">Resolución: {i.resolución?.código}</p>
+ <p className="text-sm font-medium truncate">{i.titulo?.nombre}</p>
+ <p className="text-xs text-muted-foreground font-medium">Resolución: {i.resolucion?.codigo}</p>
  </div>
  <Badge variant={i.estado === 'ACTIVA' ? 'success' : 'muted'}>{i.estado}</Badge>
  </div>
@@ -798,9 +798,9 @@ export function ModalDetalleAlumno({ alumnoId, onClose }) {
  <div className="p-3 bg-muted/30 space-y-2">
  <div className="flex items-start justify-between gap-2">
  <div className="min-w-0">
- <p className="text-sm font-semibold">{h.título?.nombre || h.títuloNombre}</p>
+ <p className="text-sm font-semibold">{h.titulo?.nombre || h.tituloNombre}</p>
  <p className="text-xs text-muted-foreground font-medium">
- Resolución: {h.resolución?.código} · Estado: {h.estado}
+ Resolución: {h.resolucion?.codigo} · Estado: {h.estado}
  </p>
  </div>
  {esEgresado && (
@@ -849,7 +849,7 @@ export function ModalDetalleAlumno({ alumnoId, onClose }) {
  {(anio.materias || []).map((m) => (
  <div key={m.id} className="flex items-center justify-between text-xs">
  <span className="text-muted-foreground">
- {m.código} - {m.nombre}
+ {m.codigo} - {m.nombre}
  </span>
  <span className="flex items-center gap-2">
  <Badge variant={m.estado === 'APROBADA' ? 'success' : m.estado === 'REGULAR' ? 'secondary' : 'muted'} className="text-xs">
@@ -883,7 +883,7 @@ export function ModalDetalleAlumno({ alumnoId, onClose }) {
  </div>
  <Button
  size="sm"
- onClick={handleSolicitarAnalítico}
+ onClick={handleSolicitarAnalitico}
  disabled={solicitando}
  >
  {solicitando ? 'Solicitando...' : 'Solicitar Analítico'}

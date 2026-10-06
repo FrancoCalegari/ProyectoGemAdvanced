@@ -39,8 +39,8 @@ export default function MiHistoria() {
  // Expandir todos los años por defecto
  if (data.inscripciones && data.inscripciones[0]) {
  const porAnio = {};
- for (const año of data.inscripciones[0].anios || []) {
- porAnio[anio.númeroAnio] = true;
+ for (const ano of data.inscripciones[0].anios || []) {
+ porAnio[anio.numeroAnio] = true;
  }
  setAniosExpandidos(porAnio);
  }
@@ -93,9 +93,9 @@ export default function MiHistoria() {
  <GraduationCap className="w-6 h-6 text-primary" />
  </div>
  <div>
- <h2 className="text-lg font-bold text-foreground">{insc.título.nombre}</h2>
+ <h2 className="text-lg font-bold text-foreground">{insc.titulo.nombre}</h2>
  <p className="text-sm text-muted-foreground font-medium mt-1">
- Resolución: {insc.resolución.código} - Nivel: {insc.título.nivel}
+ Resolución: {insc.resolucion.codigo} - Nivel: {insc.titulo.nivel}
  </p>
  <p className="text-xs text-muted-foreground mt-1">
  Inscripto: {new Date(insc.fechaInscripcion).toLocaleDateString('es-AR')}
@@ -138,16 +138,16 @@ export default function MiHistoria() {
 
  {/* Años */}
  {insc.anios.map((anio) => {
- const expandido = aniosExpandidos[anio.númeroAnio];
+ const expandido = aniosExpandidos[anio.numeroAnio];
  return (
  <Card key={anio.anioId} className="overflow-hidden">
  <button
- onClick={() => toggleAnio(anio.númeroAnio)}
+ onClick={() => toggleAnio(anio.numeroAnio)}
  className="w-full p-5 flex items-center justify-between hover:bg-accent transition-colors"
  >
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-lg bg-accent border border-border flex items-center justify-center">
- <span className="font-bold text-foreground text-sm">{anio.númeroAnio}</span>
+ <span className="font-bold text-foreground text-sm">{anio.numeroAnio}</span>
  </div>
  <div className="text-left">
  <h3 className="font-semibold text-foreground">{anio.nombre}</h3>
@@ -177,7 +177,7 @@ export default function MiHistoria() {
  <div className="flex-1 min-w-0">
  <div className="flex items-center gap-2">
  <h4 className="font-medium text-foreground truncate">{m.nombre}</h4>
- <span className="text-xs text-muted-foreground shrink-0">{m.código}</span>
+ <span className="text-xs text-muted-foreground shrink-0">{m.codigo}</span>
  </div>
  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
  {m.notaCursada !== null && m.notaCursada !== undefined && (

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { seedPersonalNoDocente } from './seed_roles_nodocentes.js';
 
 const prisma = new PrismaClient();
 
@@ -356,6 +357,9 @@ async function crearUsuarios(alumnosCreados) {
     },
   });
   log('Usuario SECRETARIA creado: secretaria@plataforma.edu.ar / secretaria123');
+
+  // Personal no docente: ficha de Empleado + usuario + horarios de trabajo
+  await seedPersonalNoDocente();
 
   for (const { alumno } of alumnosCreados) {
     await prisma.usuario.create({

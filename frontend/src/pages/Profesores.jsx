@@ -32,11 +32,11 @@ export default function Profesores() {
  const [modalCrear, setModalCrear] = useState(false);
  const [modalBaja, setModalBaja] = useState(null);
  const [form, setForm] = useState({
- dni: '', nombre: '', apellido: '', email: '', teléfono: '',
- fechaNacimiento: '', género: 'INDISTINTO', estado: 'ACTIVO', tieneCUD: false,
- domicilioCalle: '', domicilioNúmero: '', domicilioCiudad: '',
+ dni: '', nombre: '', apellido: '', email: '', telefono: '',
+ fechaNacimiento: '', genero: 'INDISTINTO', estado: 'ACTIVO', tieneCUD: false,
+ domicilioCalle: '', domicilioNumero: '', domicilioCiudad: '',
  domicilioProvincia: '', domicilioCP: '',
- títulos: [{ tipo: 'UNIVERSITARIO', nombre: '', institución: '', anioEgreso: new Date().getFullYear() }],
+ titulos: [{ tipo: 'UNIVERSITARIO', nombre: '', institucion: '', anioEgreso: new Date().getFullYear() }],
  materias: [],
  });
  const [creando, setCreando] = useState(false);
@@ -70,19 +70,19 @@ export default function Profesores() {
  }
  };
 
- const agregarTítuloForm = () => {
- setForm({ ...form, títulos: [...form.títulos, { tipo: 'UNIVERSITARIO', nombre: '', institución: '', anioEgreso: new Date().getFullYear() }] });
+ const agregarTituloForm = () => {
+ setForm({ ...form, titulos: [...form.titulos, { tipo: 'UNIVERSITARIO', nombre: '', institucion: '', anioEgreso: new Date().getFullYear() }] });
  };
 
- const eliminarTítuloForm = (idx) => {
- if (form.títulos.length <= 1) return toast.error('Debe haber al menos 1 tiƒ’i‚tulo');
- setForm({ ...form, títulos: form.títulos.filter((_, i) => i !== idx) });
+ const eliminarTituloForm = (idx) => {
+ if (form.titulos.length <= 1) return toast.error('Debe haber al menos 1 tiƒ’i‚tulo');
+ setForm({ ...form, titulos: form.titulos.filter((_, i) => i !== idx) });
  };
 
- const actualizarTítuloForm = (idx, campo, valor) => {
- const nuevos = [...form.títulos];
+ const actualizarTituloForm = (idx, campo, valor) => {
+ const nuevos = [...form.titulos];
  nuevos[idx] = { ...nuevos[idx], [campo]: valor };
- setForm({ ...form, títulos: nuevos });
+ setForm({ ...form, titulos: nuevos });
  };
 
  const agregarMateriaForm = () => {
@@ -135,11 +135,11 @@ export default function Profesores() {
 
  const resetForm = () => {
  setForm({
- dni: '', nombre: '', apellido: '', email: '', teléfono: '',
- fechaNacimiento: '', género: 'INDISTINTO', estado: 'ACTIVO', tieneCUD: false,
- domicilioCalle: '', domicilioNúmero: '', domicilioCiudad: '',
+ dni: '', nombre: '', apellido: '', email: '', telefono: '',
+ fechaNacimiento: '', genero: 'INDISTINTO', estado: 'ACTIVO', tieneCUD: false,
+ domicilioCalle: '', domicilioNumero: '', domicilioCiudad: '',
  domicilioProvincia: '', domicilioCP: '',
- títulos: [{ tipo: 'UNIVERSITARIO', nombre: '', institución: '', anioEgreso: new Date().getFullYear() }],
+ titulos: [{ tipo: 'UNIVERSITARIO', nombre: '', institucion: '', anioEgreso: new Date().getFullYear() }],
  materias: [],
  });
  };
@@ -229,7 +229,7 @@ export default function Profesores() {
  <TableCell className="font-medium">{p.apellido}, {p.nombre}</TableCell>
  <TableCell>{p.dni}</TableCell>
  <TableCell className="text-sm">{p.email}</TableCell>
- <TableCell>{p.títulos?.length || 0}</TableCell>
+ <TableCell>{p.titulos?.length || 0}</TableCell>
  <TableCell>
  <Badge variant={ESTADO_LABEL[p.estado]?.variant || 'default'}>
  {ESTADO_LABEL[p.estado]?.text || p.estado}
@@ -284,11 +284,11 @@ export default function Profesores() {
  </div>
  <div>
  <label className="text-sm font-semibold">Teliƒ’i‚fono</label>
- <Input value={form.teléfono} onChange={(v) => setForm({ ...form, teléfono: v })} />
+ <Input value={form.telefono} onChange={(v) => setForm({ ...form, telefono: v })} />
  </div>
  <div>
  <label className="text-sm font-semibold">Giƒ’i‚nero</label>
- <select value={form.género} onChange={(e) => setForm({...form, género: e.target.value})} className="w-full h-10 px-3 rounded-md border border-border bg-background">
+ <select value={form.genero} onChange={(e) => setForm({...form, genero: e.target.value})} className="w-full h-10 px-3 rounded-md border border-border bg-background">
  <option value="M">Masculino</option>
  <option value="F">Femenino</option>
  <option value="INDISTINTO">Indistinto</option>
@@ -311,24 +311,24 @@ export default function Profesores() {
  <div className="border-t border-border pt-4">
  <div className="flex items-center justify-between mb-3">
  <h3 className="font-semibold">Tiƒ’i‚tulos * (al menos 1)</h3>
- <Button type="button" variant="outline" size="sm" onClick={agregarTítuloForm}>
+ <Button type="button" variant="outline" size="sm" onClick={agregarTituloForm}>
  <Plus className="w-3 h-3 mr-1" /> Agregar
  </Button>
  </div>
- {form.títulos.map((t, idx) => (
+ {form.titulos.map((t, idx) => (
  <div key={idx} className="border border-border rounded-md p-3 mb-2 space-y-2">
  <div className="grid grid-cols-3 gap-2">
- <select value={t.tipo} onChange={(e) => actualizarTítuloForm(idx, 'tipo', e.target.value)} className="h-9 px-2 rounded-md border border-border bg-background text-sm">
+ <select value={t.tipo} onChange={(e) => actualizarTituloForm(idx, 'tipo', e.target.value)} className="h-9 px-2 rounded-md border border-border bg-background text-sm">
  <option value="UNIVERSITARIO">Universitario</option>
  <option value="TERCIARIO">Terciario</option>
  </select>
- <Input placeholder="Nombre del tiƒ’i‚tulo" value={t.nombre} onChange={(e) => actualizarTítuloForm(idx, 'nombre', e.target.value)} className="h-9 text-sm" required />
- <Input type="number" placeholder="Aiƒ’i‚o egreso" value={t.anioEgreso} onChange={(e) => actualizarTítuloForm(idx, 'anioEgreso', e.target.value)} className="h-9 text-sm" required />
+ <Input placeholder="Nombre del tiƒ’i‚tulo" value={t.nombre} onChange={(e) => actualizarTituloForm(idx, 'nombre', e.target.value)} className="h-9 text-sm" required />
+ <Input type="number" placeholder="Aiƒ’i‚o egreso" value={t.anioEgreso} onChange={(e) => actualizarTituloForm(idx, 'anioEgreso', e.target.value)} className="h-9 text-sm" required />
  </div>
  <div className="flex gap-2">
- <Input placeholder="Instituciiƒ’i‚n" value={t.institución} onChange={(e) => actualizarTítuloForm(idx, 'institución', e.target.value)} className="h-9 text-sm" required />
- {form.títulos.length > 1 && (
- <Button type="button" variant="ghost" size="sm" onClick={() => eliminarTítuloForm(idx)}>
+ <Input placeholder="Instituciiƒ’i‚n" value={t.institucion} onChange={(e) => actualizarTituloForm(idx, 'institución', e.target.value)} className="h-9 text-sm" required />
+ {form.titulos.length > 1 && (
+ <Button type="button" variant="ghost" size="sm" onClick={() => eliminarTituloForm(idx)}>
  <Trash2 className="w-4 h-4 text-destructive" />
  </Button>
  )}
@@ -360,7 +360,7 @@ export default function Profesores() {
  <option value="">Seleccioniƒ’i‚! una materia...</option>
  {materiasDisponibles.map((mat) => (
  <option key={mat.id} value={mat.id}>
- {mat.código} ai"ši‚“ {mat.nombre} ({mat.anioCurricular?.númeroAnio}iƒ"ši‚ iƒ"ši‚ {mat.anioCurricular?.resolución?.título?.nombre})
+ {mat.codigo} ai"ši‚“ {mat.nombre} ({mat.anioCurricular?.numeroAnio}iƒ"ši‚ iƒ"ši‚ {mat.anioCurricular?.resolucion?.titulo?.nombre})
  </option>
  ))}
  </select>

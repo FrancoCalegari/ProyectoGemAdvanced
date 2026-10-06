@@ -25,8 +25,8 @@ const DIAS_ALERTA_FALTAS = 5;
 export default function Asistencia() {
  const [agrupados, setAgrupados] = useState([]);
  const [cargando, setCargando] = useState(true);
- const [títuloSel, setTítuloSel] = useState(null);
- const [resoluciónSel, setResoluciónSel] = useState(null);
+ const [tituloSel, setTituloSel] = useState(null);
+ const [resolucionSel, setResolucionSel] = useState(null);
  const [anioSel, setAnioSel] = useState(null);
  const [alumnoSel, setAlumnoSel] = useState(null);
 
@@ -67,11 +67,11 @@ export default function Asistencia() {
  }, [busqueda]);
 
  const resetNavegacion = () => {
- setTítuloSel(null); setResoluciónSel(null); setAnioSel(null);
+ setTituloSel(null); setResolucionSel(null); setAnioSel(null);
  setAlumnoSel(null); setBusqueda(''); setResultadosBusqueda(null);
  };
 
- const nivelActual = alumnoSel ? 4 : anioSel ? 3 : resoluciónSel ? 2 : títuloSel ? 1 : 0;
+ const nivelActual = alumnoSel ? 4 : anioSel ? 3 : resolucionSel ? 2 : tituloSel ? 1 : 0;
 
  return (
  <div className="space-y-6">
@@ -89,25 +89,25 @@ export default function Asistencia() {
  <Home className="w-4 h-4" />
  Carreras
  </button>
- {títuloSel && (
+ {tituloSel && (
  <>
  <ChevronRight className="w-4 h-4 text-muted-foreground" />
  <button
- onClick={() => { setResoluciónSel(null); setAnioSel(null); setAlumnoSel(null); }}
- className={`${resoluciónSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
+ onClick={() => { setResolucionSel(null); setAnioSel(null); setAlumnoSel(null); }}
+ className={`${resolucionSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
  >
- {títuloSel.nombre}
+ {tituloSel.nombre}
  </button>
  </>
  )}
- {resoluciónSel && (
+ {resolucionSel && (
  <>
  <ChevronRight className="w-4 h-4 text-muted-foreground" />
  <button
  onClick={() => { setAnioSel(null); setAlumnoSel(null); }}
  className={`${anioSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
  >
- Res. {resoluciónSel.código}
+ Res. {resolucionSel.codigo}
  </button>
  </>
  )}
@@ -173,7 +173,7 @@ export default function Asistencia() {
  {nivelActual === 0 && (
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
  {agrupados.map((t) => (
- <button key={t.títuloId} onClick={() => setTítuloSel(t)} className="text-left">
+ <button key={t.tituloId} onClick={() => setTituloSel(t)} className="text-left">
  <Card className="hover:border-primary hover:shadow-md transition-all h-full">
  <div className="p-5">
  <div className="flex items-start gap-3 mb-3">
@@ -199,17 +199,17 @@ export default function Asistencia() {
  </div>
  )}
 
- {/* Nivel 1: Resoluciónes */}
- {nivelActual === 1 && títuloSel && (
+ {/* Nivel 1: Resoluciones */}
+ {nivelActual === 1 && tituloSel && (
  <div className="space-y-3">
  <Button variant="ghost" size="sm" onClick={resetNavegacion}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
- <h2 className="text-lg font-semibold">{títuloSel.nombre}</h2>
- {títuloSel.resoluciónes.map((r) => (
- <button key={r.resoluciónId} onClick={() => setResoluciónSel(r)} className="text-left w-full">
+ <h2 className="text-lg font-semibold">{tituloSel.nombre}</h2>
+ {tituloSel.resoluciones.map((r) => (
+ <button key={r.resolucionId} onClick={() => setResolucionSel(r)} className="text-left w-full">
  <Card className="hover:border-primary hover:shadow-md transition-all">
  <div className="p-5 flex items-center justify-between gap-3">
  <div>
- <h3 className="text-base font-semibold">Resolución {r.código}</h3>
+ <h3 className="text-base font-semibold">Resolución {r.codigo}</h3>
  <p className="text-xs text-muted-foreground mt-1">{r.anios.length} anos</p>
  </div>
  <div className="flex items-center gap-3">
@@ -224,12 +224,12 @@ export default function Asistencia() {
  )}
 
  {/* Nivel 2: Anos */}
- {nivelActual === 2 && resoluciónSel && (
+ {nivelActual === 2 && resolucionSel && (
  <div className="space-y-3">
- <Button variant="ghost" size="sm" onClick={() => setResoluciónSel(null)}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
- <h2 className="text-lg font-semibold">Resolución {resoluciónSel.código}</h2>
+ <Button variant="ghost" size="sm" onClick={() => setResolucionSel(null)}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
+ <h2 className="text-lg font-semibold">Resolución {resolucionSel.codigo}</h2>
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
- {resoluciónSel.anios.map((a) => (
+ {resolucionSel.anios.map((a) => (
  <button key={a.anioId} onClick={() => setAnioSel(a)} className="text-left">
  <Card className="hover:border-primary hover:shadow-md transition-all h-full">
  <div className="p-5">
@@ -239,7 +239,7 @@ export default function Asistencia() {
  </div>
  <div>
  <h3 className="text-base font-semibold">{a.nombre}</h3>
- <p className="text-xs text-muted-foreground mt-1">{a.númeroAnio} ano</p>
+ <p className="text-xs text-muted-foreground mt-1">{a.numeroAnio} ano</p>
  </div>
  </div>
  <div className="flex items-center justify-between pt-3 border-t border-border">
@@ -362,8 +362,8 @@ function CardInscripcion({ inscripcion, onCursadaClick }) {
  return (
  <Card>
  <div className="p-4 border-b border-border">
- <h3 className="text-base font-semibold truncate">{inscripcion.título?.nombre}</h3>
- <p className="text-xs text-muted-foreground font-medium">Resolución: {inscripcion.resolución?.código}</p>
+ <h3 className="text-base font-semibold truncate">{inscripcion.titulo?.nombre}</h3>
+ <p className="text-xs text-muted-foreground font-medium">Resolución: {inscripcion.resolucion?.codigo}</p>
  </div>
  {cargando ? (
  <div className="p-6 text-center text-muted-foreground text-sm">Cargando...</div>
@@ -379,7 +379,7 @@ function CardInscripcion({ inscripcion, onCursadaClick }) {
  >
  <div className="min-w-0">
  <p className="text-sm font-medium truncate">{c.materia?.nombre}</p>
- <p className="text-xs text-muted-foreground font-medium">{c.materia?.código}</p>
+ <p className="text-xs text-muted-foreground font-medium">{c.materia?.codigo}</p>
  </div>
  <Badge variant={c.estado === 'APROBADA' ? 'success' : 'default'}>{c.estado}</Badge>
  </button>
@@ -442,7 +442,7 @@ function PanelCursada({ cursada, onVolver }) {
  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
  <div className="min-w-0">
  <h2 className="text-lg sm:text-xl font-semibold truncate">{cursada.materia?.nombre}</h2>
- <p className="text-xs text-muted-foreground font-medium">{cursada.materia?.código}</p>
+ <p className="text-xs text-muted-foreground font-medium">{cursada.materia?.codigo}</p>
  </div>
  <Button onClick={() => setModalNueva(true)} className="w-full sm:w-auto shrink-0">
  <Plus className="w-4 h-4 mr-2" />Nueva asistencia

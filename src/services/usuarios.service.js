@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import prisma from '../config/db.js';
 import { AppError, ERRORS } from '../utils/errors.js';
 
-const ROLES_VALIDOS = ['ADMIN', 'SECRETARIA', 'ALUMNO', 'PROFESOR'];
+const ROLES_VALIDOS = ['ADMIN', 'SECRETARIA', 'ALUMNO', 'PROFESOR', 'BEDEL', 'CELADOR'];
 
 export class UsuariosService {
   // ============================================================

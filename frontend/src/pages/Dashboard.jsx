@@ -68,7 +68,7 @@ function KpiCard({ icon: Icon, label, value, sub, alerta, to }) {
  );
 }
 
-function SeccionTítulo({ children, to, linkLabel = 'Ver todos' }) {
+function SeccionTitulo({ children, to, linkLabel = 'Ver todos' }) {
  return (
  <div className="flex items-center justify-between mb-4">
  <h2 className="text-base font-bold text-foreground pb-2 border-b-2 border-primary/30 inline-block">{children}</h2>
@@ -223,7 +223,7 @@ export default function Dashboard() {
 
  {/* ============ ACCESOS RAPIDOS ============ */}
  <div>
- <SeccionTítulo>Accesos rapidos</SeccionTítulo>
+ <SeccionTitulo>Accesos rapidos</SeccionTitulo>
  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
  <Link to="/alumnos">
  <Card className="p-4 hover:border-primary/50 hover:shadow-md transition-all cursor-pointer">
@@ -276,12 +276,12 @@ export default function Dashboard() {
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
  {/* Últimos alumnos */}
  <Card className="p-5">
- <SeccionTítulo to="/alumnos">Últimos alumnos</SeccionTítulo>
- {!actividad?.últimosAlumnos?.length ? (
+ <SeccionTitulo to="/alumnos">Últimos alumnos</SeccionTitulo>
+ {!actividad?.ultimosAlumnos?.length ? (
  <p className="text-sm text-muted-foreground text-center py-6">Sin actividad</p>
  ) : (
  <div className="space-y-2">
- {actividad.últimosAlumnos.map((a) => (
+ {actividad.ultimosAlumnos.map((a) => (
  <Link key={a.id} to={`/alumnos/${a.id}`}>
  <div className="flex items-center gap-3 p-2 rounded-md hover:bg-accent transition-colors">
  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
@@ -303,7 +303,7 @@ export default function Dashboard() {
 
  {/* Ultimas mesas */}
  <Card className="p-5">
- <SeccionTítulo to="/mesas-examen">Ultimas mesas</SeccionTítulo>
+ <SeccionTitulo to="/mesas-examen">Ultimas mesas</SeccionTitulo>
  {!actividad?.ultimasMesas?.length ? (
  <p className="text-sm text-muted-foreground text-center py-6">Sin actividad</p>
  ) : (
@@ -333,12 +333,12 @@ export default function Dashboard() {
 
  {/* Últimos certificados */}
  <Card className="p-5">
- <SeccionTítulo to="/certificados">Últimos certificados emitidos</SeccionTítulo>
- {!actividad?.últimosCertificados?.length ? (
+ <SeccionTitulo to="/certificados">Últimos certificados emitidos</SeccionTitulo>
+ {!actividad?.ultimosCertificados?.length ? (
  <p className="text-sm text-muted-foreground text-center py-6">Sin actividad</p>
  ) : (
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
- {actividad.últimosCertificados.map((c) => (
+ {actividad.ultimosCertificados.map((c) => (
  <div key={c.id} className="flex items-center gap-3 p-3 rounded-md border border-border">
  <Award className="w-5 h-5 text-primary shrink-0" />
  <div className="min-w-0 flex-1">

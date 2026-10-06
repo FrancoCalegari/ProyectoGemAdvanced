@@ -308,4 +308,72 @@ export class CursadaService {
       inscripciones: historial,
     };
   }
+
+  // ---------------------------------------------------------
+  // Actualizar estado / notas de una cursada existente
+  // (gestión académica, o el profesor que dicta la materia)
+  // ---------------------------------------------------------
+  static async actualizar(cursadaId, data = {}, user = null) {
+    const { estado, notaCursada, notaFinal } = data;
+
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(cursadaId))) {
+      throw new AppError('VALIDATION_ERROR', 'Id de cursada inválido.', 400);
+    }
+
+    const cursada = await prisma.cursadaMateria.findUnique({
+      where: { id: cursadaId },
+      include: {
+        materia: { include: { anioCurricular: { include: { resolucion: true } } } },
+      },
+    });
+
+    if (!cursada) {
+      throw new AppError('CURSADA_NOT_FOUND', 'Cursada no encontrada.', 404);
+    }
+
+    // Un profesor sólo puede cargar notas de las materias que dicta
+    if (user?.rol === 'PROFESOR') {
+      const asignacion = await prisma.materiaProfesor.findFirst({
+        where: { profesorId: user.profesorId, materiaId: cursada.materiaId },
+      });
+      if (!asignacion) {
+        throw new AppError('SIN_PERMISO', 'No dicta esa materia.', 403);
+      }
+    }
+
+    if (estado !== undefined) {
+      if (!['EN_CURSO', 'REGULAR', 'APROBADA', 'LIBRE', 'DESAPROBADA'].includes(estado)) {
+        throw new AppError('VALIDATION_ERROR', 'Estado inválido.', 400);
+      }
+      if (!validarTransicion(cursada.estado, estado)) {
+        throw new AppError(
+          'TRANSICION_INVALIDA',
+          `No se puede pasar de ${cursada.estado} a ${estado}.`,
+          400
+        );
+      }
+    }
+
+    for (const [campo, valor] of [['notaCursada', notaCursada], ['notaFinal', notaFinal]]) {
+      if (valor !== undefined && valor !== null) {
+        const n = Number(valor);
+        if (Number.isNaN(n) || n < 0 || n > 10) {
+          throw new AppError('VALIDATION_ERROR', `${campo} debe ser un número entre 0 y 10.`, 400);
+        }
+      }
+    }
+
+    return await prisma.cursadaMateria.update({
+      where: { id: cursadaId },
+      data: {
+        ...(estado !== undefined && { estado }),
+        ...(notaCursada !== undefined && { notaCursada: notaCursada === null ? null : Number(notaCursada) }),
+        ...(notaFinal !== undefined && { notaFinal: notaFinal === null ? null : Number(notaFinal) }),
+        fechaEstado: new Date(),
+      },
+      include: {
+        materia: { select: { id: true, nombre: true, codigo: true } },
+      },
+    });
+  }
 }

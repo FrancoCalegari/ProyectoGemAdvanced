@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { homePathFor, RUTAS_CELADOR } from './utils/roles';
 import { Layout } from './components/layout/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -24,6 +25,34 @@ import MiHistoria from './pages/MiHistoria';
 import MisCertificados from './pages/MisCertificados';
 import MisMesas from './pages/MisMesas';
 import JustificarAusencia from './pages/JustificarAusencia';
+import MisHorarios from './pages/MisHorarios';
+import MisJustificativos from './pages/MisJustificativos';
+import Empleados from './pages/Empleados';
+import EmpleadoDetalle from './pages/EmpleadoDetalle';
+import Personal from './pages/Personal';
+
+// Redirige a la pagina inicial que corresponde al rol del usuario
+function HomeRedirect() {
+  const { usuario, loading } = useAuth();
+  if (loading) return null;
+  return <Navigate to={homePathFor(usuario?.rol)} replace />;
+}
+
+// Envuelve el Layout: exige sesion y, si el rol es CELADOR, lo mantiene
+// dentro de su panel personal (default-deny tambien del lado del cliente).
+function LayoutProtegido() {
+  const { usuario, loading } = useAuth();
+  const { pathname } = useLocation();
+
+  if (loading) return null;
+  if (!usuario) return <Navigate to="/login" replace />;
+
+  if (usuario.rol === 'CELADOR' && !RUTAS_CELADOR.includes(pathname)) {
+    return <Navigate to="/mis-horarios" replace />;
+  }
+
+  return <Layout />;
+}
 
 function App() {
   return (
@@ -32,7 +61,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
 
-          <Route element={<Layout />}>
+          <Route element={<LayoutProtegido />}>
             <Route path="/mi-perfil" element={<MiPerfil />} />
             <Route path="/mis-solicitudes" element={<MisSolicitudes />} />
             <Route path="/mis-licencias" element={<MisLicencias />} />
@@ -50,14 +79,19 @@ function App() {
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/profesores" element={<Profesores />} />
             <Route path="/profesores/:id" element={<ProfesorDetalle />} />
+            <Route path="/personal" element={<Personal />} />
+            <Route path="/empleados" element={<Empleados />} />
+            <Route path="/empleados/:id" element={<EmpleadoDetalle />} />
             <Route path="/mi-historia" element={<MiHistoria />} />
             <Route path="/mis-certificados" element={<MisCertificados />} />
             <Route path="/mis-mesas" element={<MisMesas />} />
             <Route path="/justificar-ausencia" element={<JustificarAusencia />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/mis-horarios" element={<MisHorarios />} />
+            <Route path="/mis-justificativos" element={<MisJustificativos />} />
+            <Route path="/" element={<HomeRedirect />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<HomeRedirect />} />
         </Routes>
         <Toaster position="top-right" richColors />
       </BrowserRouter>

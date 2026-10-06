@@ -3,6 +3,7 @@ import { ChevronRight, Home, Search, FileText, CheckCircle2, XCircle, Clock, Cal
 import { toast } from 'sonner';
 import { alumnosService } from '../services/alumnos.service';
 import { certificadosPresentadosService } from '../services/certificadosPresentados.service';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
@@ -27,8 +28,8 @@ export default function CertificadosPresentados() {
  const [cargando, setCargando] = useState(true);
 
  // Navegacion
- const [títuloSel, setTítuloSel] = useState(null);
- const [resoluciónSel, setResoluciónSel] = useState(null);
+ const [tituloSel, setTituloSel] = useState(null);
+ const [resolucionSel, setResolucionSel] = useState(null);
  const [anioSel, setAnioSel] = useState(null);
  const [alumnoSel, setAlumnoSel] = useState(null);
 
@@ -69,11 +70,11 @@ export default function CertificadosPresentados() {
  }, [busqueda]);
 
  const resetNavegacion = () => {
- setTítuloSel(null); setResoluciónSel(null); setAnioSel(null);
+ setTituloSel(null); setResolucionSel(null); setAnioSel(null);
  setAlumnoSel(null); setBusqueda(''); setResultadosBusqueda(null);
  };
 
- const nivelActual = alumnoSel ? 4 : anioSel ? 3 : resoluciónSel ? 2 : títuloSel ? 1 : 0;
+ const nivelActual = alumnoSel ? 4 : anioSel ? 3 : resolucionSel ? 2 : tituloSel ? 1 : 0;
 
  return (
  <div className="space-y-6">
@@ -90,25 +91,25 @@ export default function CertificadosPresentados() {
  <button onClick={resetNavegacion} className="flex items-center gap-1 text-primary hover:underline">
  <Home className="w-4 h-4" />Carreras
  </button>
- {títuloSel && (
+ {tituloSel && (
  <>
  <ChevronRight className="w-4 h-4 text-muted-foreground" />
  <button
- onClick={() => { setResoluciónSel(null); setAnioSel(null); setAlumnoSel(null); }}
- className={`${resoluciónSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
+ onClick={() => { setResolucionSel(null); setAnioSel(null); setAlumnoSel(null); }}
+ className={`${resolucionSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
  >
- {títuloSel.nombre}
+ {tituloSel.nombre}
  </button>
  </>
  )}
- {resoluciónSel && (
+ {resolucionSel && (
  <>
  <ChevronRight className="w-4 h-4 text-muted-foreground" />
  <button
  onClick={() => { setAnioSel(null); setAlumnoSel(null); }}
  className={`${anioSel ? 'text-primary hover:underline' : 'text-foreground font-medium'}`}
  >
- Res. {resoluciónSel.código}
+ Res. {resolucionSel.codigo}
  </button>
  </>
  )}
@@ -173,7 +174,7 @@ export default function CertificadosPresentados() {
  {nivelActual === 0 && (
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
  {agrupados.map((t) => (
- <button key={t.títuloId} onClick={() => setTítuloSel(t)} className="text-left">
+ <button key={t.tituloId} onClick={() => setTituloSel(t)} className="text-left">
  <Card className="hover:border-primary hover:shadow-md transition-all h-full">
  <div className="p-5">
  <div className="flex items-start gap-3 mb-3">
@@ -200,16 +201,16 @@ export default function CertificadosPresentados() {
  )}
 
  {/* Nivel 1 */}
- {nivelActual === 1 && títuloSel && (
+ {nivelActual === 1 && tituloSel && (
  <div className="space-y-3">
  <Button variant="ghost" size="sm" onClick={resetNavegacion}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
- <h2 className="text-lg font-semibold">{títuloSel.nombre}</h2>
- {títuloSel.resoluciónes.map((r) => (
- <button key={r.resoluciónId} onClick={() => setResoluciónSel(r)} className="text-left w-full">
+ <h2 className="text-lg font-semibold">{tituloSel.nombre}</h2>
+ {tituloSel.resoluciones.map((r) => (
+ <button key={r.resolucionId} onClick={() => setResolucionSel(r)} className="text-left w-full">
  <Card className="hover:border-primary hover:shadow-md transition-all">
  <div className="p-5 flex items-center justify-between gap-3">
  <div>
- <h3 className="text-base font-semibold">Resolución {r.código}</h3>
+ <h3 className="text-base font-semibold">Resolución {r.codigo}</h3>
  <p className="text-xs text-muted-foreground mt-1">{r.anios.length} anos</p>
  </div>
  <div className="flex items-center gap-3">
@@ -224,12 +225,12 @@ export default function CertificadosPresentados() {
  )}
 
  {/* Nivel 2 */}
- {nivelActual === 2 && resoluciónSel && (
+ {nivelActual === 2 && resolucionSel && (
  <div className="space-y-3">
- <Button variant="ghost" size="sm" onClick={() => setResoluciónSel(null)}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
- <h2 className="text-lg font-semibold">Resolución {resoluciónSel.código}</h2>
+ <Button variant="ghost" size="sm" onClick={() => setResolucionSel(null)}><ArrowLeft className="w-4 h-4 mr-2" />Volver</Button>
+ <h2 className="text-lg font-semibold">Resolución {resolucionSel.codigo}</h2>
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
- {resoluciónSel.anios.map((a) => (
+ {resolucionSel.anios.map((a) => (
  <button key={a.anioId} onClick={() => setAnioSel(a)} className="text-left">
  <Card className="hover:border-primary hover:shadow-md transition-all h-full">
  <div className="p-5">
@@ -239,7 +240,7 @@ export default function CertificadosPresentados() {
  </div>
  <div>
  <h3 className="text-base font-semibold">{a.nombre}</h3>
- <p className="text-xs text-muted-foreground mt-1">{a.númeroAnio} ano</p>
+ <p className="text-xs text-muted-foreground mt-1">{a.numeroAnio} ano</p>
  </div>
  </div>
  <div className="flex items-center justify-between pt-3 border-t border-border">
@@ -293,6 +294,7 @@ export default function CertificadosPresentados() {
 }
 
 function PanelCertificadosPresentadosAlumno({ alumno, onVolver }) {
+ const { isGestion } = useAuth();
  const [certificados, setCertificados] = useState([]);
  const [cargando, setCargando] = useState(true);
  const [modalAprobar, setModalAprobar] = useState(null);
@@ -400,7 +402,7 @@ function PanelCertificadosPresentadosAlumno({ alumno, onVolver }) {
  </div>
  <div className="flex items-center gap-2 shrink-0">
  <Badge variant={info.variant}>{info.label}</Badge>
- {cert.estado === 'PENDIENTE' && (
+ {cert.estado === 'PENDIENTE' && isGestion && (
  <>
  <Button size="sm" variant="outline" onClick={() => setModalAprobar(cert)}>
  <CheckCircle2 className="w-4 h-4 mr-1 text-green-600" />
@@ -424,8 +426,8 @@ function PanelCertificadosPresentadosAlumno({ alumno, onVolver }) {
  <ModalAccion
  open={!!modalAprobar}
  onClose={() => setModalAprobar(null)}
- título="Aprobar Certificado"
- descripción={`Al aprobar el certificado de ${alumno.apellido}, ${alumno.nombre}, las faltas en el rango ${new Date(modalAprobar.fechaDesde).toLocaleDateString('es-AR')} → ${new Date(modalAprobar.fechaHasta).toLocaleDateString('es-AR')} se marcaran como JUSTIFICADO.`}
+ titulo="Aprobar Certificado"
+ descripcion={`Al aprobar el certificado de ${alumno.apellido}, ${alumno.nombre}, las faltas en el rango ${new Date(modalAprobar.fechaDesde).toLocaleDateString('es-AR')} → ${new Date(modalAprobar.fechaHasta).toLocaleDateString('es-AR')} se marcaran como JUSTIFICADO.`}
  colorBoton="default"
  textoBoton="Aprobar y justificar"
  onConfirmar={handleAprobar}
@@ -436,8 +438,8 @@ function PanelCertificadosPresentadosAlumno({ alumno, onVolver }) {
  <ModalAccion
  open={!!modalRechazar}
  onClose={() => setModalRechazar(null)}
- título="Rechazar Certificado"
- descripción={`Se rechazara el certificado de ${alumno.apellido}, ${alumno.nombre}. Las asistencias no seran modificadas.`}
+ titulo="Rechazar Certificado"
+ descripcion={`Se rechazara el certificado de ${alumno.apellido}, ${alumno.nombre}. Las asistencias no seran modificadas.`}
  colorBoton="destructive"
  textoBoton="Rechazar"
  onConfirmar={handleRechazar}
@@ -447,7 +449,7 @@ function PanelCertificadosPresentadosAlumno({ alumno, onVolver }) {
  );
 }
 
-function ModalAccion({ open, onClose, título, descripción, colorBoton, textoBoton, onConfirmar }) {
+function ModalAccion({ open, onClose, titulo, descripcion, colorBoton, textoBoton, onConfirmar }) {
  const [observaciones, setObservaciones] = useState('');
  const [cargando, setCargando] = useState(false);
 
@@ -460,9 +462,9 @@ function ModalAccion({ open, onClose, título, descripción, colorBoton, textoBo
  };
 
  return (
- <Modal open={open} onClose={onClose} title={título} size="md">
+ <Modal open={open} onClose={onClose} title={titulo} size="md">
  <div className="space-y-4">
- <p className="text-sm text-foreground">{descripción}</p>
+ <p className="text-sm text-foreground">{descripcion}</p>
  <div>
  <label className="block text-sm font-medium mb-1 text-foreground">Observaciones (opcional)</label>
  <textarea

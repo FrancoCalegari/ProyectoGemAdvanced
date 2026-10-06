@@ -75,7 +75,7 @@ export default function MisLicencias() {
  // Tipos disponibles segun género
  const tiposDisponibles = [
  ...TIPOS_BASE,
- ...(perfilProfesor?.género === 'F' ? [TIPO_FEMENINO] : []),
+ ...(perfilProfesor?.genero === 'F' ? [TIPO_FEMENINO] : []),
  ];
  const resetForm = () => {
  setForm({
@@ -189,7 +189,7 @@ export default function MisLicencias() {
  >
  {tiposDisponibles.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
  </select>
- {perfilProfesor?.género !== 'F' && (
+ {perfilProfesor?.genero !== 'F' && (
  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
  <AlertCircle className="w-3 h-3" /> "Estudios femeninos" solo disponible para docentes de género F.
  </p>

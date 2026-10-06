@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Pencil, Trash2, RotateCcw, Shield, UserCog, Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { usuariosService } from '../services/usuarios.service';
+import { empleadosService } from '../services/empleados.service';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -14,6 +15,8 @@ const ROLES = [
  { value: 'ADMIN', label: 'Administrador' },
  { value: 'SECRETARIA', label: 'Secretaria' },
  { value: 'PROFESOR', label: 'Profesor' },
+ { value: 'BEDEL', label: 'Bedel (no docente)' },
+ { value: 'CELADOR', label: 'Celador (no docente)' },
 ];
 
 const ROL_BADGE = {
@@ -21,6 +24,8 @@ const ROL_BADGE = {
  SECRETARIA: 'secondary',
  PROFESOR: 'default',
  ALUMNO: 'default',
+ BEDEL: 'outline',
+ CELADOR: 'outline',
 };
 
 const MENSAJE_BAJA = 'No es posible eliminar los datos de un usuario. Los registros se conservan por normativa instituciónal.\n\nDeseas dar de baja al usuario? La baja conserva todo su historial academico y podras reactivarlo en cualquier momento.';
@@ -247,11 +252,13 @@ export default function Usuarios() {
 function ModalCrearUsuario({ open, onClose, onCreado }) {
  const [form, setForm] = useState({
  email: '', password: '', nombre: '', apellido: '',
- rol: 'SECRETARIA', profesorId: '',
+ rol: 'SECRETARIA', profesorId: '', empleadoId: '',
  });
  const [profesores, setProfesores] = useState([]);
+ const [empleados, setEmpleados] = useState([]);
  const [cargando, setCargando] = useState(false);
  const [cargandoProf, setCargandoProf] = useState(false);
+ const [cargandoEmp, setCargandoEmp] = useState(false);
 
  useEffect(() => {
  if (open) {
@@ -261,7 +268,20 @@ function ModalCrearUsuario({ open, onClose, onCreado }) {
 
  useEffect(() => {
  if (open && form.rol === 'PROFESOR') cargarProfesores();
+ if (open && (form.rol === 'BEDEL' || form.rol === 'CELADOR')) cargarEmpleados();
  }, [open, form.rol]);
+
+ const cargarEmpleados = async () => {
+ try {
+ setCargandoEmp(true);
+ const data = await empleadosService.listar({ estado: 'ACTIVO' });
+ setEmpleados((data || []).filter((e) => !e.usuario));
+ } catch {
+ // silencioso
+ } finally {
+ setCargandoEmp(false);
+ }
+ };
 
  const cargarProfesores = async () => {
  try {
@@ -293,6 +313,15 @@ function ModalCrearUsuario({ open, onClose, onCreado }) {
  return;
  }
  payload.profesorId = form.profesorId;
+ }
+
+ if (form.rol === 'BEDEL' || form.rol === 'CELADOR') {
+ if (!form.empleadoId) {
+ toast.error('Selecciona un empleado para vincular');
+ setCargando(false);
+ return;
+ }
+ payload.empleadoId = form.empleadoId;
  }
 
  await usuariosService.registrar(payload);
@@ -333,12 +362,41 @@ function ModalCrearUsuario({ open, onClose, onCreado }) {
  <label className="block text-sm font-medium mb-1">Rol</label>
  <select
  value={form.rol}
- onChange={(e) => setForm({ ...form, rol: e.target.value, profesorId: '' })}
+ onChange={(e) => setForm({ ...form, rol: e.target.value, profesorId: '', empleadoId: '' })}
  className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground"
  >
  {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
  </select>
  </div>
+
+ {(form.rol === 'BEDEL' || form.rol === 'CELADOR') && (
+ <div>
+ <label className="block text-sm font-medium mb-1">Empleado vinculado</label>
+ {cargandoEmp ? (
+ <p className="text-xs text-muted-foreground font-medium">Cargando personal no docente...</p>
+ ) : empleados.length === 0 ? (
+ <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-md">
+ <p className="text-xs text-foreground">
+ No hay personal no docente sin usuario. Creá primero la ficha en <strong>Personal no docente</strong>.
+ </p>
+ </div>
+ ) : (
+ <select
+ value={form.empleadoId}
+ onChange={(e) => setForm({ ...form, empleadoId: e.target.value })}
+ className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground"
+ required
+ >
+ <option value="">Seleccioná un empleado</option>
+ {empleados.map((e) => (
+ <option key={e.id} value={e.id}>
+ {e.apellido}, {e.nombre} · {e.cargo}{e.sector ? ' · ' + e.sector : ''}
+ </option>
+ ))}
+ </select>
+ )}
+ </div>
+ )}
 
  {form.rol === 'PROFESOR' && (
  <div>

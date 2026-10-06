@@ -265,7 +265,7 @@ export class CertificadoPresentadoService {
   // ----------------------------------------------------------
   // Eliminar (solo si PENDIENTE)
   // ----------------------------------------------------------
-  static async eliminar(id) {
+  static async eliminar(id, user = null) {
     const cert = await prisma.certificadoPresentado.findUnique({ where: { id } });
 
     if (!cert) {
@@ -274,6 +274,11 @@ export class CertificadoPresentadoService {
         'Certificado presentado no encontrado.',
         404
       );
+    }
+
+    // Un alumno sólo puede eliminar sus propias justificaciones
+    if (user?.rol === 'ALUMNO' && cert.alumnoId !== user.alumnoId) {
+      throw new AppError('SIN_PERMISO', 'No puede eliminar justificaciones de otro alumno.', 403);
     }
 
     if (cert.estado !== 'PENDIENTE') {

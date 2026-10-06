@@ -7,6 +7,8 @@ export const ROL_LABEL = {
  SECRETARIA: 'Secretaria',
  ALUMNO: 'Alumno',
  PROFESOR: 'Docente',
+ BEDEL: 'Bedel (no docente)',
+ CELADOR: 'Celador (no docente)',
 };
 
 export const ESTADO_ALUMNO_LABEL = {

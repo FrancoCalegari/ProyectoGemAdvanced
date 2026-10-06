@@ -78,6 +78,14 @@ prisma/seed.js.backup
 *.tmp.js
 *.old.js
 
+# Frontend (SI se versiona: solo se excluyen dependencias, build y secretos)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+.vite/
+
 # .env de backups
 backups/**/.env
 backups/**/.env.*

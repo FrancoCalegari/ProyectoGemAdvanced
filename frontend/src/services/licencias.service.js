@@ -48,6 +48,11 @@ export const licenciasService = {
  return response.data;
  },
 
+ listarPorEmpleado: async (empleadoId) => {
+ const response = await api.get(`/licencias/empleado/${empleadoId}`);
+ return response.data;
+ },
+
  misLicencias: async () => {
  const response = await api.get('/licencias/me');
  return response.data;

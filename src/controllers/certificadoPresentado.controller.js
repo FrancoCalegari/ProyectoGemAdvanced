@@ -72,7 +72,7 @@ export class CertificadoPresentadoController {
   static async eliminar(req, res, next) {
     try {
       const { id } = req.params;
-      await CertificadoPresentadoService.eliminar(id);
+      await CertificadoPresentadoService.eliminar(id, req.user);
       return res.status(204).send();
     } catch (error) {
       next(error);

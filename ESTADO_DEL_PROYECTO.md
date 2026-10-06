@@ -57,9 +57,36 @@ Backend + Frontend completos. Todas las funcionalidades del plan original (Fases
 - SECRETARIA: secretaria@plataforma.edu.ar / secretaria123
 - PROFESOR (x8): roberto.fernandez@plataforma.edu.ar / profesor123
 - ALUMNO (x20): alumno0@plataforma.edu.ar ... alumno19@plataforma.edu.ar / alumno123
+- BEDEL: bedel@plataforma.edu.ar / bedel123
+- CELADOR: celador@plataforma.edu.ar / celador123
 
----
+## Roles
+
+`ADMIN`, `SECRETARIA`, `ALUMNO`, `PROFESOR`, `BEDEL`, `CELADOR`.
+
+- **BEDEL** (personal no docente operativo): consulta alumnos, carreras, materias, mesas y
+  documentación presentada, y puede registrar asistencia y cargar justificaciones. No accede a
+  usuarios, docentes, licencias, pedidos, estadísticas ni al dashboard administrativo.
+  Además tiene su propio panel de horarios (`/mis-horarios`).
+
+- **CELADOR** (autoservicio, sin ninguna función administrativa): sólo accede a su panel
+  personal — sus datos, sus horarios de trabajo con sus modificaciones (y el aviso de novedades
+  sin ver) y la presentación de certificados de salud / justificativos de faltas. El bloqueo es
+  default-deny en el backend (`bloqueoCelador`) y se refuerza en el frontend
+  (`LayoutProtegido`).
+
+La gestión del personal no docente (fichas, cargos, sectores, horarios y sus modificaciones,
+aprobación de justificativos) está en la sección **Personal no docente** (`/empleados`),
+visible para ADMIN y SECRETARIA.
 
 ## Frontend Activo
 
-El frontend React fue reconstruido, está activo y cuenta con un diseño premium y moderno. Puedes acceder a los paneles de administración y simular el inicio de sesión en el puerto 5173.
+El frontend React está activo, con diseño renovado: se levanta con `cd frontend && npm run dev`
+en el puerto 5173. No hay pantalla de "Sistema en construcción" ni archivos `.funcional`.
+
+Para una base que ya tiene datos, después de `npx prisma migrate deploy` se pueden crear las
+fichas y los usuarios no docentes de prueba (y vincular las cuentas que ya existían) con:
+
+```powershell
+node prisma/seed_roles_nodocentes.js
+```

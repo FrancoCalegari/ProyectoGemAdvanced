@@ -123,7 +123,7 @@ export default function MesasExamen() {
  <div className="min-w-0">
  <p className="truncate">{m.materia?.nombre}</p>
  <p className="text-xs text-muted-foreground font-medium">
- {m.materia?.código}
+ {m.materia?.codigo}
  </p>
  </div>
  </TableCell>
@@ -183,10 +183,10 @@ export default function MesasExamen() {
 }
 
 function ModalCrearMesa({ open, onClose, onCreada }) {
- const [títulos, setTítulos] = useState([]);
- const [títuloId, setTítuloId] = useState('');
- const [resoluciónes, setResoluciónes] = useState([]);
- const [resoluciónId, setResoluciónId] = useState('');
+ const [titulos, setTitulos] = useState([]);
+ const [tituloId, setTituloId] = useState('');
+ const [resoluciones, setResoluciones] = useState([]);
+ const [resolucionId, setResolucionId] = useState('');
  const [materias, setMaterias] = useState([]);
  const [materiaId, setMateriaId] = useState('');
  const [fecha, setFecha] = useState('');
@@ -198,53 +198,53 @@ function ModalCrearMesa({ open, onClose, onCreada }) {
 
  useEffect(() => {
  if (open) {
- setTítuloId('');
- setResoluciónId('');
+ setTituloId('');
+ setResolucionId('');
  setMateriaId('');
  setFecha('');
  setHora('18:00');
  setAula('');
  setCupoMaximo('');
  setObservaciones('');
- cargarTítulos();
+ cargarTitulos();
  }
  }, [open]);
 
  // Cargar títulos al abrir
- const cargarTítulos = async () => {
+ const cargarTitulos = async () => {
  try {
  const data = await titulosService.listar();
- setTítulos(data);
+ setTitulos(data);
  } catch (error) {
  toast.error('Error al cargar títulos');
  }
  };
 
- // Cuando cambia título → cargar resoluciónes
+ // Cuando cambia título → cargar resoluciones
  useEffect(() => {
- if (!títuloId) {
- setResoluciónes([]);
+ if (!tituloId) {
+ setResoluciones([]);
  return;
  }
- const t = títulos.find((x) => x.id === títuloId);
- setResoluciónes(t?.resoluciónes || []);
- setResoluciónId('');
- }, [títuloId, títulos]);
+ const t = titulos.find((x) => x.id === tituloId);
+ setResoluciones(t?.resoluciones || []);
+ setResolucionId('');
+ }, [tituloId, titulos]);
 
  // Cuando cambia resolución → cargar plan
  useEffect(() => {
- if (!resoluciónId) {
+ if (!resolucionId) {
  setMaterias([]);
  return;
  }
  (async () => {
  try {
- const { data } = await api.get(`/curricular/resoluciónes/${resoluciónId}/plan`);
+ const { data } = await api.get(`/curricular/resoluciones/${resolucionId}/plan`);
  const todasMaterias = data.flatMap((a) =>
  (a.materias || []).map((m) => ({
  id: m.id,
  nombre: m.nombre,
- código: m.código,
+ codigo: m.codigo,
  anioNombre: a.nombre,
  }))
  );
@@ -255,7 +255,7 @@ function ModalCrearMesa({ open, onClose, onCreada }) {
  setMaterias([]);
  }
  })();
- }, [resoluciónId]);
+ }, [resolucionId]);
 
  const handleSubmit = async (e) => {
  e.preventDefault();
@@ -287,13 +287,13 @@ function ModalCrearMesa({ open, onClose, onCreada }) {
  Carrera / Título
  </label>
  <select
- value={títuloId}
- onChange={(e) => setTítuloId(e.target.value)}
+ value={tituloId}
+ onChange={(e) => setTituloId(e.target.value)}
  className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
  required
  >
  <option value="">— Selecciona una carrera —</option>
- {títulos.map((t) => (
+ {titulos.map((t) => (
  <option key={t.id} value={t.id}>
  {t.nombre}
  </option>
@@ -306,16 +306,16 @@ function ModalCrearMesa({ open, onClose, onCreada }) {
  Resolución
  </label>
  <select
- value={resoluciónId}
- onChange={(e) => setResoluciónId(e.target.value)}
+ value={resolucionId}
+ onChange={(e) => setResolucionId(e.target.value)}
  className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
- disabled={!títuloId}
+ disabled={!tituloId}
  required
  >
  <option value="">— Seleccioná una Resolución —</option>
- {resoluciónes.map((r) => (
+ {resoluciones.map((r) => (
  <option key={r.id} value={r.id}>
- {r.código} {r.estado === 'VIGENTE' ? '(vigente)' : `(${r.estado})`}
+ {r.codigo} {r.estado === 'VIGENTE' ? '(vigente)' : `(${r.estado})`}
  </option>
  ))}
  </select>
@@ -329,13 +329,13 @@ function ModalCrearMesa({ open, onClose, onCreada }) {
  value={materiaId}
  onChange={(e) => setMateriaId(e.target.value)}
  className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
- disabled={!resoluciónId}
+ disabled={!resolucionId}
  required
  >
  <option value="">— Selecciona una materia —</option>
  {materias.map((m) => (
  <option key={m.id} value={m.id}>
- {m.anioNombre} — {m.código} {m.nombre}
+ {m.anioNombre} — {m.codigo} {m.nombre}
  </option>
  ))}
  </select>

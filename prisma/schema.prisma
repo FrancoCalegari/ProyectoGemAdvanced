@@ -78,6 +78,8 @@ enum rol_usuario {
   SECRETARIA
   ALUMNO
   PROFESOR
+  BEDEL
+  CELADOR
 }
 
 enum estado_asistencia {
@@ -99,6 +101,8 @@ enum tipo_licencia {
   DONACION_SANGRE
   ACCIDENTE_LABORAL
   OTRO
+  CERTIFICADO_SALUD
+  JUSTIFICATIVO_FALTA
 }
 
 enum turno_licencia {
@@ -119,6 +123,23 @@ enum estado_licencia {
   PENDIENTE
   APROBADA
   RECHAZADA
+}
+
+enum cargo_empleado {
+  BEDEL
+  CELADOR
+  OTRO
+}
+
+enum estado_empleado {
+  ACTIVO
+  INACTIVO
+}
+
+enum tipo_modificacion_horario {
+  ALTA
+  CAMBIO
+  BAJA
 }
 
 enum tipo_solicitud {
@@ -412,12 +433,15 @@ model Usuario {
   activo       Boolean     @default(true)
   alumnoId     String?     @unique @map("alumno_id") @db.Uuid
   profesorId   String?     @unique @map("profesor_id") @db.Uuid
+  empleadoId   String?     @unique @map("empleado_id") @db.Uuid
   createdAt    DateTime    @default(now()) @map("created_at")
 
   alumno                Alumno?                 @relation(fields: [alumnoId], references: [id], onDelete: SetNull)
   profesor              Profesor?               @relation(fields: [profesorId], references: [id], onDelete: SetNull)
+  empleado              Empleado?               @relation(fields: [empleadoId], references: [id], onDelete: SetNull)
   certificadosAprobados CertificadoPresentado[] @relation("CertificadosAprobados")
   mesasCreadas          MesaExamen[]            @relation("MesasCreadas")
+  horariosModificados   ModificacionHorario[]   @relation("HorariosModificados")
 
   @@map("usuarios")
 }
@@ -553,7 +577,8 @@ model MateriaProfesor {
 
 model Licencia {
   id            String          @id @default(uuid()) @db.Uuid
-  profesorId    String          @map("profesor_id") @db.Uuid
+  profesorId    String?         @map("profesor_id") @db.Uuid
+  empleadoId    String?         @map("empleado_id") @db.Uuid
   tipo          tipo_licencia
   fechaDesde    DateTime        @map("fecha_desde") @db.Date
   fechaHasta    DateTime        @map("fecha_hasta") @db.Date
@@ -567,10 +592,12 @@ model Licencia {
   observaciones String?         @db.Text
   createdAt     DateTime        @default(now()) @map("created_at")
 
-  profesor Profesor @relation(fields: [profesorId], references: [id], onDelete: Cascade)
+  profesor Profesor? @relation(fields: [profesorId], references: [id], onDelete: Cascade)
+  empleado Empleado? @relation(fields: [empleadoId], references: [id], onDelete: Cascade)
 
   clasesSuspendidas ClaseSuspendida[]
 
+  @@index([empleadoId])
   @@map("licencias")
 }
 
@@ -634,4 +661,82 @@ model Reasignacion {
 
   @@unique([claseSuspendidaId, profesorDestinoId])
   @@map("reasignaciones")
+}
+
+// =========================================================
+// Personal no docente (bedeles, celadores, etc.)
+// =========================================================
+
+model Empleado {
+  id                 String          @id @default(uuid()) @db.Uuid
+  dni                String          @unique
+  nombre             String
+  apellido           String
+  email              String          @unique
+  telefono           String?
+  fechaNacimiento    DateTime?       @map("fecha_nacimiento") @db.Date
+  genero             String?
+  domicilioCalle     String?         @map("domicilio_calle")
+  domicilioNumero    String?         @map("domicilio_numero")
+  domicilioCiudad    String?         @map("domicilio_ciudad")
+  domicilioProvincia String?         @map("domicilio_provincia")
+  domicilioCP        String?         @map("domicilio_cp")
+  cargo              cargo_empleado
+  sector             String?
+  fechaIngreso       DateTime?       @map("fecha_ingreso") @db.Date
+  observaciones      String?         @db.Text
+  estado             estado_empleado @default(ACTIVO)
+  createdAt          DateTime        @default(now()) @map("created_at")
+
+  usuario        Usuario?
+  horarios       HorarioTrabajo[]
+  modificaciones ModificacionHorario[]
+  licencias      Licencia[]
+
+  @@map("empleados")
+}
+
+// Horario de trabajo de un empleado no docente.
+// Cuando cambia un horario se cierra la fila (vigenteHasta) y se crea una nueva:
+// asi queda el historial completo de turnos y sectores.
+model HorarioTrabajo {
+  id           String    @id @default(uuid()) @db.Uuid
+  empleadoId   String    @map("empleado_id") @db.Uuid
+  diaSemana    Int       @map("dia_semana")
+  horaInicio   String    @map("hora_inicio")
+  horaFin      String    @map("hora_fin")
+  sector       String?
+  vigenteDesde DateTime  @map("vigente_desde") @db.Date
+  vigenteHasta DateTime? @map("vigente_hasta") @db.Date
+  activo       Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  empleado       Empleado              @relation(fields: [empleadoId], references: [id], onDelete: Cascade)
+  modificaciones ModificacionHorario[]
+
+  @@index([empleadoId, diaSemana])
+  @@map("horarios_trabajo")
+}
+
+// Historial automatico de modificaciones de horario (lo genera el backend en cada ABM)
+model ModificacionHorario {
+  id            String                    @id @default(uuid()) @db.Uuid
+  horarioId     String                    @map("horario_id") @db.Uuid
+  empleadoId    String                    @map("empleado_id") @db.Uuid
+  tipo          tipo_modificacion_horario
+  detalle       String                    @db.Text
+  valorAnterior Json?                     @map("valor_anterior")
+  valorNuevo    Json?                     @map("valor_nuevo")
+  motivo        String?                   @db.Text
+  cambiadoPorId String?                   @map("cambiado_por_id") @db.Uuid
+  visto         Boolean                   @default(false)
+  vistoAt       DateTime?                 @map("visto_at")
+  createdAt     DateTime                  @default(now()) @map("created_at")
+
+  horario     HorarioTrabajo @relation(fields: [horarioId], references: [id], onDelete: Cascade)
+  empleado    Empleado       @relation(fields: [empleadoId], references: [id], onDelete: Cascade)
+  cambiadoPor Usuario?       @relation("HorariosModificados", fields: [cambiadoPorId], references: [id], onDelete: SetNull)
+
+  @@index([empleadoId, createdAt])
+  @@map("modificaciones_horario")
 }

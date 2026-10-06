@@ -12,12 +12,16 @@ const ROL_LABEL = {
  SECRETARIA: 'Secretaria',
  ALUMNO: 'Alumno',
  PROFESOR: 'Profesor',
+ BEDEL: 'Bedel (no docente)',
+ CELADOR: 'Celador (no docente)',
 };
 const ROL_BADGE = {
  ADMIN: 'destructive',
  SECRETARIA: 'secondary',
  ALUMNO: 'default',
  PROFESOR: 'default',
+ BEDEL: 'outline',
+ CELADOR: 'outline',
 };
 export default function MiPerfil() {
  const { usuario: usuarioAuth } = useAuth();
@@ -31,8 +35,8 @@ export default function MiPerfil() {
  });
  // Form contacto + domicilio
  const [formContacto, setFormContacto] = useState({
- teléfono: '',
- domicilioCalle: '', domicilioNúmero: '',
+ telefono: '',
+ domicilioCalle: '', domicilioNumero: '',
  domicilioCiudad: '', domicilioProvincia: '', domicilioCP: '',
  });
  // Form password
@@ -52,9 +56,9 @@ export default function MiPerfil() {
  });
  const fuenteContacto = data.alumno || data.profesor || {};
  setFormContacto({
- teléfono: fuenteContacto.teléfono || '',
+ telefono: fuenteContacto.telefono || '',
  domicilioCalle: fuenteContacto.domicilioCalle || '',
- domicilioNúmero: fuenteContacto.domicilioNúmero || '',
+ domicilioNumero: fuenteContacto.domicilioNumero || '',
  domicilioCiudad: fuenteContacto.domicilioCiudad || '',
  domicilioProvincia: fuenteContacto.domicilioProvincia || '',
  domicilioCP: fuenteContacto.domicilioCP || '',
@@ -117,7 +121,7 @@ export default function MiPerfil() {
  };
  if (cargando) return <div className="p-8 text-center text-muted-foreground font-medium">Cargando...</div>;
  if (!usuario) return null;
- const tieneContacto = usuario.alumno || usuario.profesor;
+ const tieneContacto = usuario.alumno || usuario.profesor || usuario.empleado;
  return (
  <div className="space-y-6">
  <div>
@@ -148,6 +152,13 @@ export default function MiPerfil() {
  <Badge variant={usuario.profesor.estado === 'ACTIVO' ? 'default' : 'secondary'}>
  {usuario.profesor.estado}
  </Badge>
+ </>
+ )}
+ {usuario.empleado && (
+ <>
+ <Badge variant="outline">DNI {usuario.empleado.dni}</Badge>
+ <Badge variant="secondary">{usuario.empleado.cargo}</Badge>
+ {usuario.empleado.sector && <Badge variant="outline">{usuario.empleado.sector}</Badge>}
  </>
  )}
  </div>
@@ -207,10 +218,10 @@ export default function MiPerfil() {
  {tab === 'contacto' && tieneContacto && (
  <Card className="p-6">
  <form onSubmit={handleGuardarContacto} className="space-y-4 max-w-2xl">
- {usuario.profesor && (
+ {(usuario.profesor || usuario.empleado) && (
  <div>
  <label className="block text-sm font-medium mb-1">Teléfono</label>
- <Input value={formContacto.teléfono} onChange={(e) => setFormContacto({ ...formContacto, teléfono: e.target.value })} placeholder="+54 9 ..." />
+ <Input value={formContacto.telefono} onChange={(e) => setFormContacto({ ...formContacto, telefono: e.target.value })} placeholder="+54 9 ..." />
  </div>
  )}
  <div>
@@ -222,7 +233,7 @@ export default function MiPerfil() {
  </div>
  <div>
  <label className="block text-sm font-medium mb-1">Número</label>
- <Input value={formContacto.domicilioNúmero} onChange={(e) => setFormContacto({ ...formContacto, domicilioNúmero: e.target.value })} />
+ <Input value={formContacto.domicilioNumero} onChange={(e) => setFormContacto({ ...formContacto, domicilioNumero: e.target.value })} />
  </div>
  <div>
  <label className="block text-sm font-medium mb-1">Ciudad</label>

@@ -1,4 +1,4 @@
-# Backend — Plataforma de Gestión de Carreras Académicas
+# Plataforma de Gestión de Carreras Académicas (Backend + Frontend)
 
 Este repositorio contiene el backend de una plataforma pensada para que una institución educativa pueda administrar sus carreras de forma ordenada, versionando los planes de estudio sin perder el historial académico de nadie.
 
@@ -6,9 +6,79 @@ La idea central es simple pero poderosa: cuando una institución cambia el plan 
 
 ---
 
+## Cómo ejecutarlo (paso a paso)
+
+### 1. Base de datos (PostgreSQL 18 en el puerto 5434)
+
+Si todavía no tenés el contenedor:
+
+```bash
+docker network create academico_net
+docker run -d --name postgres-academico --network academico_net \
+  -e POSTGRES_USER=academico_user \
+  -e POSTGRES_PASSWORD=31881701 \
+  -e POSTGRES_DB=plataforma_academica \
+  -p 5434:5432 \
+  -v academico_pgdata:/var/lib/postgresql/data \
+  postgres:18-alpine
+```
+
+Si ya existe, alcanza con `docker start postgres-academico`.
+
+### 2. Variables de entorno
+
+```bash
+cp .env.example .env                        # backend (ajustá DB_PASSWORD)
+cp frontend/.env.example frontend/.env      # frontend
+```
+
+### 3. Backend
+
+```bash
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npx prisma db seed                      # datos de ejemplo completos
+node prisma/seed_roles_nodocentes.js    # fichas + horarios de bedel y celador
+npm run dev                             # http://localhost:3000  ·  Swagger: /api-docs
+```
+
+### 4. Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev                             # http://localhost:5173
+```
+
+### Usuarios de prueba
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| ADMIN | admin@plataforma.edu.ar | admin123 |
+| SECRETARIA | secretaria@plataforma.edu.ar | secretaria123 |
+| PROFESOR | roberto.fernandez@plataforma.edu.ar | profesor123 |
+| ALUMNO | alumno0@plataforma.edu.ar | alumno123 |
+| BEDEL | bedel@plataforma.edu.ar | bedel123 |
+| CELADOR | celador@plataforma.edu.ar | celador123 |
+
+> Los usuarios **BEDEL** y **CELADOR** se crean con `node prisma/seed_roles_nodocentes.js`,
+> que además les asigna sus horarios de trabajo de ejemplo.
+>
+> El **CELADOR** es un rol de autoservicio: sólo accede a su panel personal (sus datos, sus
+> horarios con sus modificaciones y la presentación de certificados y justificativos).
+
+---
+
 ## Estado actual del proyecto
 
-El proyecto está en construcción activa. Actualmente las **Fases 0 a 7** del plan están completas, más un conjunto de **módulos nuevos (M1-M11)**. Actualmente hay **135 endpoints** documentados con Swagger y **51 tests unitarios** pasando.
+El proyecto incluye el **backend y el frontend completos**. Están implementadas las **Fases 0 a 7**
+del plan original, los **módulos nuevos (M1-M11)**, la **gestión del personal no docente** y el
+**rol Celador**. Hay **136 endpoints** en la API (**23 documentados con Swagger**, en `/api-docs`) y
+**51 tests unitarios** que pasan con `npm test`.
+
+El detalle de los últimos cambios, el alcance de cada rol y las pantallas nuevas está en
+[**CAMBIOS-Y-USO.md**](./CAMBIOS-Y-USO.md).
 
 ### Fases del plan original
 

@@ -15,22 +15,22 @@ import { Modal } from '../components/ui/Modal';
 import { NIVEL_LABEL, TIPO_CURSADA_LABEL, ESTADO_TITULO_LABEL } from '../utils/labels';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function Títulos() {
- const [títulos, setTítulos] = useState([]);
+export default function Titulos() {
+ const [titulos, setTitulos] = useState([]);
  const [cargando, setCargando] = useState(true);
  const [busqueda, setBusqueda] = useState('');
  const [modalCrear, setModalCrear] = useState(false);
  const [modalDetalle, setModalDetalle] = useState(null);
 
  useEffect(() => {
- cargarTítulos();
+ cargarTitulos();
  }, []);
 
- const cargarTítulos = async () => {
+ const cargarTitulos = async () => {
  try {
  setCargando(true);
  const data = await titulosService.listar();
- setTítulos(data);
+ setTitulos(data);
  } catch (error) {
  toast.error('Error al cargar títulos');
  } finally {
@@ -38,7 +38,7 @@ export default function Títulos() {
  }
  };
 
- const títulosFiltrados = títulos.filter((t) =>
+ const titulosFiltrados = titulos.filter((t) =>
  t.nombre.toLowerCase().includes(busqueda.toLowerCase())
  );
 
@@ -47,7 +47,7 @@ export default function Títulos() {
  try {
  await titulosService.darDeBaja(id);
  toast.success('Título dado de baja');
- cargarTítulos();
+ cargarTitulos();
  } catch (error) {
  toast.error(error.response?.data?.message || 'Error al dar de baja');
  }
@@ -83,7 +83,7 @@ export default function Títulos() {
 
  {cargando ? (
  <div className="p-8 text-center text-muted-foreground font-medium">Cargando...</div>
- ) : títulosFiltrados.length === 0 ? (
+ ) : titulosFiltrados.length === 0 ? (
  <div className="p-8 text-center text-muted-foreground font-medium">
  {busqueda ? 'No se encontraron resultados' : 'No hay títulos cargados'}
  </div>
@@ -94,25 +94,25 @@ export default function Títulos() {
  <TableHead>Nombre</TableHead>
  <TableHead>Nivel</TableHead>
  <TableHead>Duración</TableHead>
- <TableHead>Resoluciónes</TableHead>
+ <TableHead>Resoluciones</TableHead>
  <TableHead>Estado</TableHead>
  <TableHead className="text-right">Acciones</TableHead>
  </TableRow>
  </TableHeader>
  <TableBody>
- {títulosFiltrados.map((título) => (
- <TableRow key={título.id}>
- <TableCell className="font-medium">{título.nombre}</TableCell>
- <TableCell>{título.nivel}</TableCell>
- <TableCell>{título.duraciónAnios} anos</TableCell>
+ {titulosFiltrados.map((titulo) => (
+ <TableRow key={titulo.id}>
+ <TableCell className="font-medium">{titulo.nombre}</TableCell>
+ <TableCell>{titulo.nivel}</TableCell>
+ <TableCell>{titulo.duracionAnios} anos</TableCell>
  <TableCell>
  <Badge variant="muted">
- {título.resoluciónes?.length || 0}
+ {titulo.resoluciones?.length || 0}
  </Badge>
  </TableCell>
  <TableCell>
- <Badge variant={título.estado === 'ACTIVO' ? 'success' : 'danger'}>
- {título.estado}
+ <Badge variant={titulo.estado === 'ACTIVO' ? 'success' : 'danger'}>
+ {titulo.estado}
  </Badge>
  </TableCell>
  <TableCell className="text-right">
@@ -120,14 +120,14 @@ export default function Títulos() {
  <Button
  variant="ghost"
  size="icon"
- onClick={() => setModalDetalle(título.id)}
+ onClick={() => setModalDetalle(titulo.id)}
  >
  <Eye className="w-4 h-4" />
  </Button>
  <Button
  variant="ghost"
  size="icon"
- onClick={() => darDeBaja(título.id)}
+ onClick={() => darDeBaja(titulo.id)}
  >
  <Trash2 className="w-4 h-4 text-destructive" />
  </Button>
@@ -140,32 +140,32 @@ export default function Títulos() {
  )}
  </Card>
 
- <ModalCrearTítulo
+ <ModalCrearTitulo
  open={modalCrear}
  onClose={() => setModalCrear(false)}
  onCreado={() => {
  setModalCrear(false);
- cargarTítulos();
+ cargarTitulos();
  }}
  />
 
- <ModalDetalleTítulo
- títuloId={modalDetalle}
+ <ModalDetalleTitulo
+ tituloId={modalDetalle}
  onClose={() => setModalDetalle(null)}
  />
  </div>
  );
 }
 
-function ModalCrearTítulo({ open, onClose, onCreado }) {
+function ModalCrearTitulo({ open, onClose, onCreado }) {
  const [form, setForm] = useState({
  nombre: '',
  nivel: 'Terciario',
- duraciónAnios: 3,
- descripción: '',
- número: '',
+ duracionAnios: 3,
+ descripcion: '',
+ numero: '',
  anioCreacion: new Date().getFullYear(),
- código: '',
+ codigo: '',
  fechaInicioVigencia: new Date().toISOString().split('T')[0],
  });
  const [cargando, setCargando] = useState(false);
@@ -178,12 +178,12 @@ function ModalCrearTítulo({ open, onClose, onCreado }) {
  await titulosService.crear({
  nombre: form.nombre,
  nivel: form.nivel,
- duraciónAnios: parseInt(form.duraciónAnios),
- descripción: form.descripción?.trim() || null,
- resolución: {
- número: form.número,
+ duracionAnios: parseInt(form.duracionAnios),
+ descripcion: form.descripcion?.trim() || null,
+ resolucion: {
+ numero: form.numero,
  anioCreacion: parseInt(form.anioCreacion),
- código: form.código,
+ codigo: form.codigo,
  fechaInicioVigencia: form.fechaInicioVigencia,
  },
  });
@@ -214,8 +214,8 @@ function ModalCrearTítulo({ open, onClose, onCreado }) {
  <Input
  label="Duración (anos)"
  type="number"
- value={form.duraciónAnios}
- onChange={(e) => setForm({ ...form, duraciónAnios: e.target.value })}
+ value={form.duracionAnios}
+ onChange={(e) => setForm({ ...form, duracionAnios: e.target.value })}
  required
  />
  <div>
@@ -223,8 +223,8 @@ function ModalCrearTítulo({ open, onClose, onCreado }) {
  Descripción de la carrera
  </label>
  <textarea
- value={form.descripción}
- onChange={(e) => setForm({ ...form, descripción: e.target.value })}
+ value={form.descripcion}
+ onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
  rows={4}
  placeholder="Ej: Formacion de 3 anos orientada a la gestion de organizaciones publicas y privadas. Los egresados podran desempenarse en areas de administracion, RRHH, comercializacion y finanzas."
  className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -239,8 +239,8 @@ function ModalCrearTítulo({ open, onClose, onCreado }) {
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <Input
  label="Número"
- value={form.número}
- onChange={(e) => setForm({ ...form, número: e.target.value })}
+ value={form.numero}
+ onChange={(e) => setForm({ ...form, numero: e.target.value })}
  placeholder="045"
  required
  />
@@ -254,8 +254,8 @@ function ModalCrearTítulo({ open, onClose, onCreado }) {
  </div>
  <Input
  label="Código"
- value={form.código}
- onChange={(e) => setForm({ ...form, código: e.target.value })}
+ value={form.codigo}
+ onChange={(e) => setForm({ ...form, codigo: e.target.value })}
  placeholder="RES-045/2026"
  className="mt-3"
  required
@@ -279,8 +279,8 @@ function ModalCrearTítulo({ open, onClose, onCreado }) {
  );
 }
 
-function ModalDetalleTítulo({ títuloId, onClose }) {
- const [título, setTítulo] = useState(null);
+function ModalDetalleTitulo({ tituloId, onClose }) {
+ const [titulo, setTitulo] = useState(null);
  const [cargando, setCargando] = useState(false);
  const [aniosAbiertos, setAniosAbiertos] = useState({});
  const [editandoDesc, setEditandoDesc] = useState(false);
@@ -292,40 +292,40 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  const [refreshKey, setRefreshKey] = useState(0);
 
  useEffect(() => {
- if (títuloId) {
+ if (tituloId) {
  setCargando(true);
  setAniosAbiertos({});
- titulosService.obtenerPorId(títuloId)
- .then(setTítulo)
+ titulosService.obtenerPorId(tituloId)
+ .then(setTitulo)
  .catch(() => toast.error('Error al cargar detalle'))
  .finally(() => setCargando(false));
  } else {
- setTítulo(null);
+ setTitulo(null);
  }
- }, [títuloId, refreshKey]);
+ }, [tituloId, refreshKey]);
 
  const toggleAnio = (anioId) => {
  setAniosAbiertos((prev) => ({ ...prev, [anioId]: !prev[anioId] }));
  };
 
  // Obtener la resolución vigente (o la primera) para mostrar el plan de estudios
- const resoluciónVigente = título?.resoluciónes?.find((r) => r.estado === 'VIGENTE')
- || título?.resoluciónes?.[0];
+ const resolucionVigente = titulo?.resoluciones?.find((r) => r.estado === 'VIGENTE')
+ || titulo?.resoluciones?.[0];
 
- const totalMaterias = resoluciónVigente?.aniosCurriculares?.reduce(
+ const totalMaterias = resolucionVigente?.aniosCurriculares?.reduce(
  (acc, a) => acc + (a.materias?.length || 0), 0
  ) || 0;
 
- const totalHoras = resoluciónVigente?.aniosCurriculares?.reduce(
+ const totalHoras = resolucionVigente?.aniosCurriculares?.reduce(
  (acc, a) => acc + (a.materias?.reduce((s, m) => s + (m.cargaHoraria || 0), 0) || 0), 0
  ) || 0;
 
  const handleGuardarDesc = async () => {
  setGuardandoDesc(true);
  try {
- await titulosService.actualizar(título.id, { descripción: descTemp.trim() || null });
+ await titulosService.actualizar(titulo.id, { descripcion: descTemp.trim() || null });
  toast.success('Descripción actualizada');
- setTítulo({ ...título, descripción: descTemp.trim() || null });
+ setTitulo({ ...titulo, descripcion: descTemp.trim() || null });
  setEditandoDesc(false);
  } catch (error) {
  toast.error(error.response?.data?.message || 'Error al guardar');
@@ -335,21 +335,21 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  };
 
  return (
- <Modal open={!!títuloId} onClose={onClose} title="Detalle del Título" size="xl">
+ <Modal open={!!tituloId} onClose={onClose} title="Detalle del Título" size="xl">
  {cargando ? (
  <p className="text-muted-foreground">Cargando...</p>
- ) : título ? (
+ ) : titulo ? (
  <div className="space-y-6">
  {/* HEADER */}
  <div className="space-y-2">
- <h3 className="text-xl sm:text-2xl font-bold text-foreground">{título.nombre}</h3>
+ <h3 className="text-xl sm:text-2xl font-bold text-foreground">{titulo.nombre}</h3>
  <div className="flex flex-wrap items-center gap-2">
- <Badge variant="secondary">{NIVEL_LABEL[título.nivel] || título.nivel}</Badge>
- <Badge variant="muted">{título.duraciónAnios} anos</Badge>
- <Badge variant={título.estado === 'ACTIVO' ? 'success' : 'danger'}>
- {ESTADO_TITULO_LABEL[título.estado] || título.estado}
+ <Badge variant="secondary">{NIVEL_LABEL[titulo.nivel] || titulo.nivel}</Badge>
+ <Badge variant="muted">{titulo.duracionAnios} anos</Badge>
+ <Badge variant={titulo.estado === 'ACTIVO' ? 'success' : 'danger'}>
+ {ESTADO_TITULO_LABEL[titulo.estado] || titulo.estado}
  </Badge>
- {resoluciónVigente && (
+ {resolucionVigente && (
  <Badge variant="outline" className="text-xs">
  {totalMaterias} materias - {totalHoras} hs
  </Badge>
@@ -357,7 +357,7 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  <Button
  size="sm"
  variant="outline"
- onClick={() => generarPdfPlanEstudios(título)}
+ onClick={() => generarPdfPlanEstudios(titulo)}
  className="ml-auto"
  >
  <Download className="w-3.5 h-3.5 mr-1.5" />
@@ -375,7 +375,7 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  size="sm"
  variant="ghost"
  onClick={() => {
- setDescTemp(título.descripción || '');
+ setDescTemp(titulo.descripcion || '');
  setEditandoDesc(true);
  }}
  >
@@ -406,9 +406,9 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  </Button>
  </div>
  </div>
- ) : título.descripción ? (
+ ) : titulo.descripcion ? (
  <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
- {título.descripción}
+ {titulo.descripcion}
  </p>
  ) : (
  <p className="text-sm text-muted-foreground italic">
@@ -418,17 +418,17 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  </div>
 
  {/* PLAN DE ESTUDIOS */}
- {resoluciónVigente?.aniosCurriculares?.length > 0 ? (
+ {resolucionVigente?.aniosCurriculares?.length > 0 ? (
  <div className="space-y-3">
  <div className="flex items-center justify-between">
  <h4 className="text-sm font-semibold text-foreground">Plan de estudios</h4>
  <span className="text-xs text-muted-foreground font-medium">
- Resolución {resoluciónVigente.código}
+ Resolución {resolucionVigente.codigo}
  </span>
  </div>
  <div className="space-y-2">
- {resoluciónVigente.aniosCurriculares
- .sort((a, b) => a.númeroAnio - b.númeroAnio)
+ {resolucionVigente.aniosCurriculares
+ .sort((a, b) => a.numeroAnio - b.numeroAnio)
  .map((anio) => {
  const abierto = aniosAbiertos[anio.id];
  const cantMaterias = anio.materias?.length || 0;
@@ -446,7 +446,7 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  &#9654;
  </span>
  <span className="font-medium text-sm">
- {anio.nombre || `${anio.númeroAnio}o Anio`}
+ {anio.nombre || `${anio.numeroAnio}o Anio`}
  </span>
  <span className="text-xs text-muted-foreground font-medium">
  {cantMaterias} materias - {horasAnio} hs
@@ -455,7 +455,7 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  </button>
  <button
  type="button"
- onClick={() => generarPdfPlanEstudios(título, anio)}
+ onClick={() => generarPdfPlanEstudios(titulo, anio)}
  className="mr-1 p-1.5 rounded-md hover:bg-primary/10 text-primary transition-colors"
  title="Descargar PDF de este anio"
  >
@@ -481,7 +481,7 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  ) : (
  <div className="divide-y divide-border">
  {anio.materias
- .sort((a, b) => a.código.localeCompare(b.código))
+ .sort((a, b) => a.codigo.localeCompare(b.codigo))
  .map((m) => (
  <button
  key={m.id}
@@ -491,7 +491,7 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  >
  <div className="flex items-center gap-3 flex-1 min-w-0">
  <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded shrink-0">
- {m.código}
+ {m.codigo}
  </span>
  <span className="text-sm font-medium text-foreground truncate">
  {m.nombre}
@@ -535,17 +535,17 @@ function ModalDetalleTítulo({ títuloId, onClose }) {
  )}
 
  {/* RESOLUCIONES */}
- {título.resoluciónes?.length > 0 && (
+ {titulo.resoluciones?.length > 0 && (
  <div className="space-y-2">
- <h4 className="text-sm font-semibold text-foreground">Resoluciónes</h4>
+ <h4 className="text-sm font-semibold text-foreground">Resoluciones</h4>
  <div className="space-y-2">
- {título.resoluciónes.map((r) => (
+ {titulo.resoluciones.map((r) => (
  <div
  key={r.id}
  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-muted/50 rounded-md"
  >
  <div>
- <p className="font-medium text-sm">{r.código}</p>
+ <p className="font-medium text-sm">{r.codigo}</p>
  <p className="text-xs text-muted-foreground font-medium">
  Inicio: {new Date(r.fechaInicioVigencia).toLocaleDateString('es-AR')}
  {r.fechaFinVigencia && ` - Fin: ${new Date(r.fechaFinVigencia).toLocaleDateString('es-AR')}`}
@@ -603,21 +603,21 @@ function ModalMateriaDetalle({ materiaId, onClose }) {
  <div className="space-y-2">
  <div className="flex items-start gap-3">
  <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded shrink-0">
- {materia.código}
+ {materia.codigo}
  </span>
  <h3 className="text-lg sm:text-xl font-bold text-foreground">{materia.nombre}</h3>
  </div>
  <div className="flex flex-wrap items-center gap-2">
  <Badge variant="muted">{materia.cargaHoraria} hs</Badge>
  <Badge variant="secondary">{TIPO_CURSADA_LABEL[materia.tipoCursada] || materia.tipoCursada}</Badge>
- {anio && <Badge variant="outline">{anio.nombre || `${anio.númeroAnio}o Anio`}</Badge>}
+ {anio && <Badge variant="outline">{anio.nombre || `${anio.numeroAnio}o Anio`}</Badge>}
  </div>
  </div>
 
- {materia.descripción && (
+ {materia.descripcion && (
  <div className="rounded-lg border border-border bg-muted/30 p-4">
  <h4 className="text-sm font-semibold text-foreground mb-2">Qué se aprende</h4>
- <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{materia.descripción}</p>
+ <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{materia.descripcion}</p>
  </div>
  )}
 
@@ -635,7 +635,7 @@ function ModalMateriaDetalle({ materiaId, onClose }) {
  </div>
  )}
 
- {!materia.descripción && !materia.objetivos && !materia.contenidosMinimos && (
+ {!materia.descripcion && !materia.objetivos && !materia.contenidosMinimos && (
  <div className="rounded-lg border border-dashed border-border p-4 text-center">
  <p className="text-sm text-muted-foreground italic">
  Esta materia todavia no tiene descripción, objetivos ni contenidos cargados.
@@ -650,7 +650,7 @@ function ModalMateriaDetalle({ materiaId, onClose }) {
  {materia.correlativasParaEsta.map((c) => (
  <div key={c.id} className="flex items-center gap-2 text-sm p-2 rounded-md bg-muted/30">
  <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
- {c.materiaRequerida.código}
+ {c.materiaRequerida.codigo}
  </span>
  <span>{c.materiaRequerida.nombre}</span>
  <Badge variant="muted" className="ml-auto text-xs">
@@ -689,8 +689,8 @@ function ModalFormMateria({ config, onClose, onGuardado }) {
  const abierto = !!config;
  const editando = !!config?.materia;
  const [form, setForm] = useState({
- nombre: '', código: '', cargaHoraria: 96, tipoCursada: 'ANUAL',
- descripción: '', contenidosMinimos: '', objetivos: '',
+ nombre: '', codigo: '', cargaHoraria: 96, tipoCursada: 'ANUAL',
+ descripcion: '', contenidosMinimos: '', objetivos: '',
  });
  const [guardando, setGuardando] = useState(false);
 
@@ -699,15 +699,15 @@ function ModalFormMateria({ config, onClose, onGuardado }) {
  const m = config.materia;
  setForm({
  nombre: m.nombre || '',
- código: m.código || '',
+ codigo: m.codigo || '',
  cargaHoraria: m.cargaHoraria || 96,
  tipoCursada: m.tipoCursada || 'ANUAL',
- descripción: m.descripción || '',
+ descripcion: m.descripcion || '',
  contenidosMinimos: m.contenidosMinimos || '',
  objetivos: m.objetivos || '',
  });
  } else if (config) {
- setForm({ nombre: '', código: '', cargaHoraria: 96, tipoCursada: 'ANUAL', descripción: '', contenidosMinimos: '', objetivos: '' });
+ setForm({ nombre: '', codigo: '', cargaHoraria: 96, tipoCursada: 'ANUAL', descripcion: '', contenidosMinimos: '', objetivos: '' });
  }
  }, [config]);
 
@@ -717,10 +717,10 @@ function ModalFormMateria({ config, onClose, onGuardado }) {
  try {
  const payload = {
  nombre: form.nombre.trim(),
- código: form.código.trim(),
+ codigo: form.codigo.trim(),
  cargaHoraria: parseInt(form.cargaHoraria, 10),
  tipoCursada: form.tipoCursada,
- descripción: form.descripción.trim() || null,
+ descripcion: form.descripcion.trim() || null,
  contenidosMinimos: form.contenidosMinimos.trim() || null,
  objetivos: form.objetivos.trim() || null,
  };
@@ -749,7 +749,7 @@ function ModalFormMateria({ config, onClose, onGuardado }) {
  </div>
  <div>
  <label className="text-sm font-semibold">Código *</label>
- <Input value={form.código} onChange={(e) => setForm({ ...form, código: e.target.value })} required placeholder="TSA101" />
+ <Input value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} required placeholder="TSA101" />
  </div>
  <div>
  <label className="text-sm font-semibold">Carga horaria (hs) *</label>
@@ -774,8 +774,8 @@ function ModalFormMateria({ config, onClose, onGuardado }) {
  <div>
  <label className="text-sm font-semibold">Que se aprende (descripción)</label>
  <textarea
- value={form.descripción}
- onChange={(e) => setForm({ ...form, descripción: e.target.value })}
+ value={form.descripcion}
+ onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
  rows={3}
  className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm resize-y"
  placeholder="Breve descripción de los aprendizajes esperados..."

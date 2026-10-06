@@ -52,8 +52,15 @@ export function AuthProvider({ children }) {
  isSecretaria: usuario?.rol === 'SECRETARIA',
  isAlumno: usuario?.rol === 'ALUMNO',
  isProfesor: usuario?.rol === 'PROFESOR',
+ isBedel: usuario?.rol === 'BEDEL',
+ isCelador: usuario?.rol === 'CELADOR',
+ // Personal no docente (bedeles, celadores): consulta y tareas operativas
+ isNoDocente: usuario?.rol === 'BEDEL' || usuario?.rol === 'CELADOR',
+ // Gestión académica (puede crear / modificar)
+ isGestion: usuario?.rol === 'ADMIN' || usuario?.rol === 'SECRETARIA',
  profesorId: usuario?.profesorId || null,
  alumnoId: usuario?.alumnoId || null,
+ empleadoId: usuario?.empleadoId || null,
  };
 
  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

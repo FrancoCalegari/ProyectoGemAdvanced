@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { profesoresService } from '../services/profesores.service';
 import { solicitudesService } from '../services/solicitudes.service';
 import api from '../services/api';
+import { cursadasService } from '../services/cursadas.service';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -13,6 +14,15 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { ESTADO_CURSADA_LABEL } from '../utils/labels';
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+// Espeja las transiciones permitidas del backend (cursada.service.js)
+const TRANSICIONES_CURSADA = {
+ EN_CURSO: ['EN_CURSO', 'REGULAR', 'LIBRE', 'DESAPROBADA'],
+ REGULAR: ['REGULAR', 'APROBADA', 'DESAPROBADA'],
+ APROBADA: ['APROBADA'],
+ LIBRE: ['LIBRE', 'EN_CURSO'],
+ DESAPROBADA: ['DESAPROBADA', 'EN_CURSO'],
+};
 
 const ESTADOS_CURSADA = [
  { value: 'EN_CURSO', label: 'En curso', variant: 'warning' },
@@ -64,7 +74,7 @@ export default function MisCursadas() {
  // Por defecto todos los años expandidos
  const porAnio = {};
  for (const m of data) {
- const año = m.materia.anioCurricular?.númeroAnio || 1;
+ const ano = m.materia.anioCurricular?.numeroAnio || 1;
  porAnio[anio] = true;
  }
  setAniosExpandidos(porAnio);
@@ -111,6 +121,7 @@ export default function MisCursadas() {
  alumnoNombre: `${alumno.alumno.apellido}, ${alumno.alumno.nombre}`,
  alumnoDni: alumno.alumno.dni,
  estado: alumno.estado,
+ estadoOriginal: alumno.estado,
  notaCursada: alumno.notaCursada || '',
  notaFinal: alumno.notaFinal || '',
  });
@@ -121,7 +132,7 @@ export default function MisCursadas() {
  if (!modalNota) return;
  setGuardando(true);
  try {
- await api.put(`/cursadas/${modalNota.cursadaId}`, {
+ await cursadasService.actualizar(modalNota.cursadaId, {
  estado: modalNota.estado,
  notaCursada: modalNota.notaCursada !== '' ? parseFloat(modalNota.notaCursada) : null,
  notaFinal: modalNota.notaFinal !== '' ? parseFloat(modalNota.notaFinal) : null,
@@ -171,7 +182,7 @@ export default function MisCursadas() {
  // Agrupar por año
  const porAnio = {};
  for (const m of materias) {
- const año = m.materia.anioCurricular?.númeroAnio || 1;
+ const ano = m.materia.anioCurricular?.numeroAnio || 1;
  if (!porAnio[anio]) porAnio[anio] = [];
  porAnio[anio].push(m);
  }
@@ -241,7 +252,7 @@ export default function MisCursadas() {
  className="bg-background border border-border rounded-xl p-4 hover:border-primary/50 transition-all"
  >
  <div className="flex items-start justify-between mb-3">
- <Badge variant="outline">{mp.materia.código}</Badge>
+ <Badge variant="outline">{mp.materia.codigo}</Badge>
  <button
  onClick={(e) => { e.stopPropagation(); setModalSugerencia(mp); }}
  title="Enviar sugerencia"
@@ -253,7 +264,7 @@ export default function MisCursadas() {
 
  <h3 className="font-semibold text-foreground mb-1">{mp.materia.nombre}</h3>
  <p className="text-xs text-muted-foreground mb-3 truncate">
- {mp.materia.anioCurricular?.resolución?.título?.nombre}
+ {mp.materia.anioCurricular?.resolucion?.titulo?.nombre}
  </p>
 
  <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
@@ -359,7 +370,7 @@ export default function MisCursadas() {
  {mesas.map((m) => (
  <TableRow key={m.id}>
  <TableCell className="font-medium">
- {m.materia?.nombre} <span className="text-muted-foreground text-xs">({m.materia?.código})</span>
+ {m.materia?.nombre} <span className="text-muted-foreground text-xs">({m.materia?.codigo})</span>
  </TableCell>
  <TableCell>{new Date(m.fecha).toLocaleDateString('es-AR')}</TableCell>
  <TableCell>{m.hora}</TableCell>
@@ -398,7 +409,7 @@ export default function MisCursadas() {
  <div>
  <h1 className="text-2xl font-bold text-foreground">{materiaActiva.materia.nombre}</h1>
  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground mt-1">
- <span>{materiaActiva.materia.código}</span>
+ <span>{materiaActiva.materia.codigo}</span>
  <span>·</span>
  <span>{DIAS[materiaActiva.diaSemana]} {materiaActiva.horaInicio}-{materiaActiva.horaFin}</span>
  <span>·</span>
@@ -489,7 +500,7 @@ export default function MisCursadas() {
  onChange={(e) => setModalNota({ ...modalNota, estado: e.target.value })}
  className="w-full h-10 px-3 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30"
  >
- {ESTADOS_CURSADA.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
+ {ESTADOS_CURSADA.filter((e) => (TRANSICIONES_CURSADA[modalNota.estadoOriginal] || ESTADOS_CURSADA.map((x) => x.value)).includes(e.value)).map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
  </select>
  </div>
  <div className="grid grid-cols-2 gap-3">

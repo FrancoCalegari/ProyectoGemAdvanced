@@ -8,6 +8,7 @@ import prisma from './config/db.js';
 import swaggerSpec from './config/swagger.js';
 
 import { errorHandler, notFound } from './middlewares/index.js';
+import { bloqueoCelador } from './middlewares/auth.js';
 
 import tituloRoutes from './routes/titulo.routes.js';
 import resolucionRoutes from './routes/resolucion.routes.js';
@@ -27,6 +28,11 @@ import dashboardRoutes from './routes/dashboard.routes.js';
 import licenciaRoutes from './routes/licencia.routes.js';
 import solicitudRoutes from './routes/solicitud.routes.js';
 import claseSuspendidaRoutes from './routes/claseSuspendida.routes.js';
+import equivalenciaRoutes from './routes/equivalencia.routes.js';
+import cursadaRoutes from './routes/cursada.routes.js';
+import empleadoRoutes from './routes/empleado.routes.js';
+import horarioTrabajoRoutes from './routes/horarioTrabajo.routes.js';
+import personalRoutes from './routes/personal.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -67,12 +73,19 @@ app.get('/health', async (req, res) => {
 // ---------------------------------------------------------
 // RUTAS
 // ---------------------------------------------------------
+// El CELADOR es un rol de autoservicio: default-deny sobre su panel personal.
+// Se aplica antes que cualquier router para que no pueda alcanzar ninguna
+// funcion administrativa, ni siquiera escribiendo la URL a mano.
+app.use('/api', bloqueoCelador);
+
+// El router de auth se monta PRIMERO: los routers de abajo usan el prefijo
+// amplio '/api', asi que /api/auth/login tiene que resolverse antes.
+app.use('/api/auth', authRoutes);
 app.use('/api', correlatividadRoutes);
 app.use('/api', asistenciaRoutes);
 app.use('/api', certificadoPresentadoRoutes);
 app.use('/api', mesaExamenRoutes);
 app.use('/api/certificados', certificadoRoutes);
-app.use('/api/auth', authRoutes);
 app.use('/api/titulos', tituloRoutes);
 app.use('/api/resoluciones', resolucionRoutes);
 app.use('/api/curricular', curricularRoutes);
@@ -85,6 +98,11 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/licencias', licenciaRoutes);
 app.use('/api/solicitudes', solicitudRoutes);
 app.use('/api/clases-suspendidas', claseSuspendidaRoutes);
+app.use('/api', equivalenciaRoutes);
+app.use('/api/cursadas', cursadaRoutes);
+app.use('/api/empleados', empleadoRoutes);
+app.use('/api/horarios', horarioTrabajoRoutes);
+app.use('/api/personal', personalRoutes);
 
 // ---------------------------------------------------------
 // MANEJO DE ERRORES

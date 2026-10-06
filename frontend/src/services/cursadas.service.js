@@ -6,6 +6,11 @@ export const cursadasService = {
  return response.data;
  },
 
+ actualizar: async (cursadaId, data) => {
+ const response = await api.put(`/cursadas/${cursadaId}`, data);
+ return response.data;
+ },
+
  listarPorInscripcion: async (inscripcionId) => {
  const response = await api.get(`/inscripciones/${inscripcionId}/cursadas`);
  return response.data;
@@ -17,19 +22,20 @@ export const cursadasService = {
  },
 };
 
+// Las rutas del backend usan el plural "asistencias"
 export const asistenciaService = {
  registrar: async (cursadaId, data) => {
- const response = await api.post(`/cursadas/${cursadaId}/asistencia`, data);
+ const response = await api.post(`/cursadas/${cursadaId}/asistencias`, data);
  return response.data;
  },
 
  registrarMasivo: async (cursadaId, data) => {
- const response = await api.post(`/cursadas/${cursadaId}/asistencia/masivo`, data);
+ const response = await api.post(`/cursadas/${cursadaId}/asistencias/masivo`, data);
  return response.data;
  },
 
  listarPorCursada: async (cursadaId) => {
- const response = await api.get(`/cursadas/${cursadaId}/asistencia`);
+ const response = await api.get(`/cursadas/${cursadaId}/asistencias`);
  return response.data;
  },
 
@@ -39,18 +45,18 @@ export const asistenciaService = {
  if (hasta) params.append('hasta', hasta);
  const qs = params.toString();
  const response = await api.get(
- `/cursadas/${cursadaId}/asistencia/rango${qs ? `?${qs}` : ''}`
+ `/cursadas/${cursadaId}/asistencias/rango${qs ? `?${qs}` : ''}`
  );
  return response.data;
  },
 
  resumen: async (cursadaId) => {
- const response = await api.get(`/cursadas/${cursadaId}/asistencia/resumen`);
+ const response = await api.get(`/cursadas/${cursadaId}/asistencias/resumen`);
  return response.data;
  },
 
  eliminar: async (id) => {
- const response = await api.delete(`/asistencia/${id}`);
+ const response = await api.delete(`/asistencias/${id}`);
  return response.data;
  },
 };
