@@ -1,0 +1,2 @@
+-- CreateEnum
+CREATE TYPE "tipo_mesa" AS ENUM ('EXAMEN_FINAL', 'INGRESO_NIVELATORIO');

@@ -1,0 +1,56 @@
+# ============================================================
+# .dockerignore — Archivos a excluir de la imagen Docker
+# ============================================================
+
+# Dependencias (se instalan dentro del contenedor)
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Variables de entorno (se pasan por docker-compose)
+.env
+.env.*
+!.env.example
+
+# Tests (no van a producción)
+tests/
+coverage/
+
+# Documentación
+*.md
+!README.md
+
+# CI/CD
+.github/
+
+# Docker
+docker-compose.yml
+docker-compose.*.yml
+docker/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Backups
+*.backup
+*.bak
+
+# Archivos temporales
+*.tmp
+*.pdf
+test_*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+backups/
+prisma/*.backup
+prisma/*.backup-*

@@ -1,13 +1,5 @@
-// ============================================================
-// MIDDLEWARES GLOBALES
-// ============================================================
-
 import { ZodError } from 'zod';
 import { AppError } from '../utils/errors.js';
-
-// ------------------------------------------------------------
-// NOT FOUND — Rutas inexistentes
-// ------------------------------------------------------------
 
 export function notFound(req, res, next) {
   res.status(404).json({
@@ -15,10 +7,6 @@ export function notFound(req, res, next) {
     message: `Ruta no encontrada: ${req.method} ${req.originalUrl}`,
   });
 }
-
-// ------------------------------------------------------------
-// VALIDATE — Valida req.body con Zod
-// ------------------------------------------------------------
 
 export function validate(schema) {
   return (req, res, next) => {
@@ -41,10 +29,6 @@ export function validate(schema) {
     }
   };
 }
-
-// ------------------------------------------------------------
-// ERROR HANDLER — Captura global de errores
-// ------------------------------------------------------------
 
 export function errorHandler(err, req, res, next) {
   if (err instanceof AppError) {
@@ -74,6 +58,20 @@ export function errorHandler(err, req, res, next) {
     return res.status(404).json({
       error: 'NOT_FOUND',
       message: 'El registro no existe.',
+    });
+  }
+
+  if (err.code === '23001') {
+    return res.status(409).json({
+      error: 'FOREIGN_KEY_RESTRICT',
+      message: 'No se puede eliminar: tiene registros relacionados.',
+    });
+  }
+
+  if (err.message && err.message.includes('violates RESTRICT setting')) {
+    return res.status(409).json({
+      error: 'FOREIGN_KEY_RESTRICT',
+      message: 'No se puede eliminar: tiene registros relacionados.',
     });
   }
 

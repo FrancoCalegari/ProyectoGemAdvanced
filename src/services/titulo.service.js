@@ -1,22 +1,33 @@
 import prisma from '../config/db.js';
+import { AppError, ERRORS } from '../utils/errors.js';
 
 export class TituloService {
-  // 1. Crear Título con su primera Resolución en una sola transacción
   static async crearTituloConResolucion(data) {
-    const { nombre, nivel, duracionAnios, resolucion } = data;
+    const { nombre, nivel, duracionAnios, descripcion, resolucion } = data;
+
+    const existente = await prisma.titulo.findUnique({ where: { nombre } });
+    if (existente) {
+      throw new AppError(...ERRORS.TITULO_NOMBRE_DUP);
+    }
+
+    const codigoExiste = await prisma.resolucion.findUnique({
+      where: { codigo: resolucion.codigo },
+    });
+    if (codigoExiste) {
+      throw new AppError(...ERRORS.RESOLUCION_CODIGO_DUP);
+    }
 
     return await prisma.$transaction(async (tx) => {
-      // Crear el título
       const nuevoTitulo = await tx.titulo.create({
         data: {
           nombre,
           nivel,
           duracionAnios,
-          estado: 'ACTIVO'
-        }
+          estado: 'ACTIVO',
+          descripcion: descripcion || null,
+        },
       });
 
-      // Crear la resolución inicial VIGENTE
       const nuevaResolucion = await tx.resolucion.create({
         data: {
           tituloId: nuevoTitulo.id,
@@ -25,30 +36,28 @@ export class TituloService {
           codigo: resolucion.codigo,
           fechaInicioVigencia: new Date(resolucion.fechaInicioVigencia),
           estado: 'VIGENTE',
-          observaciones: resolucion.observaciones || null
-        }
+          observaciones: resolucion.observaciones || null,
+        },
       });
 
       return {
         ...nuevoTitulo,
-        resolucionVigente: nuevaResolucion
+        resolucionVigente: nuevaResolucion,
       };
     });
   }
 
-  // 2. Listar todos los títulos con sus resoluciones
   static async obtenerTodos() {
     return await prisma.titulo.findMany({
       include: {
         resoluciones: {
-          orderBy: { fechaInicioVigencia: 'desc' }
-        }
+          orderBy: { fechaInicioVigencia: 'desc' },
+        },
       },
-      orderBy: { nombre: 'asc' }
+      orderBy: { nombre: 'asc' },
     });
   }
 
-  // 3. Obtener un título por ID
   static async obtenerPorId(id) {
     const titulo = await prisma.titulo.findUnique({
       where: { id },
@@ -56,49 +65,53 @@ export class TituloService {
         resoluciones: {
           include: {
             aniosCurriculares: {
-              include: { materias: true }
-            }
-          }
-        }
-      }
+              include: { materias: true },
+            },
+          },
+        },
+      },
     });
 
     if (!titulo) {
-      throw new Error('TITULO_NOT_FOUND');
+      throw new AppError(...ERRORS.TITULO_NOT_FOUND);
     }
 
     return titulo;
   }
 
-  // 4. Crear una nueva resolución para un título (cierra la vigente anterior)
   static async agregarNuevaResolucion(tituloId, data) {
     return await prisma.$transaction(async (tx) => {
-      // Verificar existencia del título
       const titulo = await tx.titulo.findUnique({ where: { id: tituloId } });
-      if (!titulo) throw new Error('TITULO_NOT_FOUND');
+      if (!titulo) {
+        throw new AppError(...ERRORS.TITULO_NOT_FOUND);
+      }
+
+      const codigoExiste = await tx.resolucion.findUnique({
+        where: { codigo: data.codigo },
+      });
+      if (codigoExiste) {
+        throw new AppError(...ERRORS.RESOLUCION_CODIGO_DUP);
+      }
 
       const fechaInicio = new Date(data.fechaInicioVigencia);
 
-      // Buscar si existe una resolución actualmente VIGENTE
       const resolucionVigente = await tx.resolucion.findFirst({
         where: {
           tituloId,
-          estado: 'VIGENTE'
-        }
+          estado: 'VIGENTE',
+        },
       });
 
-      // Si hay una vigente, la cerramos
       if (resolucionVigente) {
         await tx.resolucion.update({
           where: { id: resolucionVigente.id },
           data: {
             estado: 'CERRADA',
-            fechaFinVigencia: fechaInicio
-          }
+            fechaFinVigencia: fechaInicio,
+          },
         });
       }
 
-      // Crear la nueva resolución VIGENTE
       const nuevaResolucion = await tx.resolucion.create({
         data: {
           tituloId,
@@ -107,11 +120,58 @@ export class TituloService {
           codigo: data.codigo,
           fechaInicioVigencia: fechaInicio,
           estado: 'VIGENTE',
-          observaciones: data.observaciones || null
-        }
+          observaciones: data.observaciones || null,
+        },
       });
 
       return nuevaResolucion;
+    });
+  }
+
+  static async actualizar(id, data) {
+    const titulo = await prisma.titulo.findUnique({ where: { id } });
+    if (!titulo) {
+      throw new AppError(...ERRORS.TITULO_NOT_FOUND);
+    }
+
+    if (data.nombre && data.nombre !== titulo.nombre) {
+      const existente = await prisma.titulo.findUnique({
+        where: { nombre: data.nombre },
+      });
+      if (existente) {
+        throw new AppError(...ERRORS.TITULO_NOMBRE_DUP);
+      }
+    }
+
+    return await prisma.titulo.update({
+      where: { id },
+      data: {
+        ...(data.nombre && { nombre: data.nombre }),
+        ...(data.nivel && { nivel: data.nivel }),
+        ...(data.duracionAnios && { duracionAnios: data.duracionAnios }),
+        ...(data.estado && { estado: data.estado }),
+        ...(data.descripcion !== undefined && { descripcion: data.descripcion }),
+      },
+    });
+  }
+
+  static async darDeBaja(id) {
+    const titulo = await prisma.titulo.findUnique({
+      where: { id },
+      include: { inscripciones: true },
+    });
+
+    if (!titulo) {
+      throw new AppError(...ERRORS.TITULO_NOT_FOUND);
+    }
+
+    if (titulo.inscripciones.length > 0) {
+      throw new AppError(...ERRORS.TITULO_CON_INSCRIP);
+    }
+
+    return await prisma.titulo.update({
+      where: { id },
+      data: { estado: 'DE_BAJA' },
     });
   }
 }
