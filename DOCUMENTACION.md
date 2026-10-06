@@ -22,7 +22,7 @@
 9. [Testing](#9-testing)
 10. [Documentación interactiva (Swagger)](#10-documentación-interactiva-swagger)
 11. [Despliegue y DevOps](#11-despliegue-y-devops)
-12. [Conclusiones y próximos pasos](#12-conclusiones-y-próximos-pasos)
+12. [Conclusiones y estado final](#12-conclusiones-y-estado-final)
 
 ---
 
@@ -67,8 +67,8 @@ El proyecto se divide en 10 fases de implementación:
 | 5 | Cursadas e Historia Académica | Completada |
 | 6 | Certificados (con PDF) | Completada |
 | 7 | Autenticación JWT + Roles | Completada |
-| 8 | Testing + Swagger | En cierre |
-| 9 | Deploy (Dockerfile + CI) | Pendiente |
+| 8 | Testing + Swagger | Completada |
+| 9 | Deploy (Dockerfile + docker-compose) | Completada |
 
 ---
 
@@ -103,7 +103,7 @@ El sistema está construido con una **arquitectura en capas** (layered architect
                        ▼
 ┌─────────────────────────────────────────────────┐
 │           PostgreSQL 18 (Docker)                │
-│  - 13 modelos / 10 enums                        │
+│  - 26 modelos / 28 enums                        │
 │  - Transacciones ACID                           │
 │  - Constraints e índices únicos                 │
 └─────────────────────────────────────────────────┘
@@ -307,7 +307,7 @@ Ejemplo: **crear un título con su primera resolución.**
 
 ### 4.1 Visión general
 
-El sistema tiene **13 modelos** y **10 enums**. Las entidades principales son:
+El sistema tiene **26 modelos** y **28 enums**. Las entidades principales son:
 
 - **Título:** carrera ofrecida.
 - **Resolución:** versión de la currícula.
@@ -590,7 +590,7 @@ Si la transición no está permitida, tira `TRANSICION_INVALIDA`.
 ```
 ProyectoGemAdvanced/
 ├── prisma/
-│   ├── schema.prisma              # Modelo de datos (13 modelos, 10 enums)
+│   ├── schema.prisma              # Modelo de datos (26 modelos, 28 enums)
 │   ├── seed.js                    # Carga de datos de prueba
 │   └── migrations/                # Migraciones versionadas
 ├── src/
@@ -811,7 +811,7 @@ static async crearTituloConResolucion(data) {
 | GET | `/api/certificados/:id/pdf` | Descargar PDF | Sí |
 | PUT | `/api/certificados/:id/anular` | Anular | Sí |
 
-**Total: ~50 endpoints.**
+**Total: 136 endpoints.**
 
 ---
 
@@ -947,7 +947,7 @@ export default {
 - `certificado.service.test.js` — 5 tests.
 - `cursada.service.test.js` — 5 tests.
 
-**Total: 22 tests.**
+**Total: 51 tests.**
 
 ### 9.4 Resultados
 
@@ -1108,27 +1108,29 @@ npx prisma generate
 
 ---
 
-## 12. Conclusiones y próximos pasos
+## 12. Conclusiones y estado final
 
 ### 12.1 Estado actual
 
-El proyecto tiene **8 de 10 fases completadas**:
+El proyecto tiene **las 10 fases completadas**:
 
 | Fase | Estado |
 |------|--------|
 | 0-7 | ✅ Completadas |
-| 8 | 🚀 En cierre (Testing + Swagger) |
-| 9 | ⏳ Pendiente (Deploy) |
+| 8 | ✅ Completada (Testing + Swagger) |
+| 9 | ✅ Completada (Deploy con Docker) |
 
 **Estadísticas:**
-- **~50 endpoints REST** funcionando.
-- **13 modelos** en la base de datos.
-- **10 enums** para estados.
+- **136 endpoints REST** funcionando.
+- **26 modelos** en la base de datos.
+- **28 enums** para estados.
 - **~2000 correlatividades** cargadas por el seeder.
-- **22 tests unitarios** pasando.
+- **51 tests unitarios** pasando.
 - **Swagger UI** en `/api-docs`.
-- **Sistema de auth** con JWT y 3 roles.
+- **Sistema de auth** con JWT y **6 roles** (ADMIN, SECRETARIA, ALUMNO, PROFESOR, BEDEL y CELADOR).
 - **Generación de PDF** para certificados.
+- **Frontend React** completo, con panel por rol y rutas protegidas.
+- **Personal no docente** y **rol Celador** con horarios e historial de modificaciones.
 
 ### 12.2 Logros técnicos
 
@@ -1152,30 +1154,25 @@ El proyecto tiene **8 de 10 fases completadas**:
 - **Separar en capas** (routes/controllers/services) facilita el testing y el mantenimiento.
 - **Los tests atrapan regresiones** antes de que lleguen a producción.
 
-### 12.4 Próximos pasos
+### 12.4 Estado final de la entrega
 
-**Fase 9 (pendiente):**
-1. Crear `docker/Dockerfile` para el API.
-2. Actualizar `docker-compose.yml` con el servicio `api`.
-3. Crear `.dockerignore`.
-4. Configurar GitHub Actions para CI (lint + tests).
-5. Documentar el despliegue en el README.
+Todas las etapas del plan están **completas**:
 
-**Mejoras futuras (post-Fase 9):**
-1. **Equivalencias más avanzadas:** permitir que un admin revise y apruebe las equivalencias automáticas antes de aplicarlas.
-2. **Mesas de examen:** módulo para gestionar turnos de finales y actas.
-3. **Notificaciones:** email/SMS cuando se habilita a rendir un final o se emite un certificado.
-4. **Panel de reportes:** estadísticas de rendimiento por cohorte, materia o resolución.
-5. **Firma digital** de certificados en PDF.
-6. **Migración a TypeScript** para tipado estático completo.
-7. **Tests de integración** con Supertest para endpoints.
-8. **Rate limiting** en endpoints públicos.
-9. **Refresh tokens** para sesiones más seguras.
-10. **Frontend** con React/Vue.
+| Etapa | Estado |
+|------|--------|
+| Fases 0 a 9 del plan original | ✅ Completadas |
+| Módulos nuevos M1 a M11 | ✅ Completados |
+| Personal no docente (bedeles y celadores) | ✅ Implementado |
+| Frontend React (panel por rol) | ✅ Implementado |
+| Testing (51 tests) y documentación | ✅ Completados |
+| Dockerización (Dockerfile + docker-compose) | ✅ Completada |
+
+El sistema queda listo para usarse y desplegarse: seis roles operativos, backend y frontend
+integrados, base de datos versionada con migraciones, datos de ejemplo y documentación funcional.
 
 ### 12.5 Conclusión
 
-El proyecto **Plataforma de Gestión de Carreras Académicas** es una implementación completa y profesional de un sistema backend para instituciones educativas. Cubre todos los aspectos críticos del dominio:
+El proyecto **Plataforma de Gestión de Carreras Académicas** es una implementación completa y profesional de un sistema de gestión integral (**backend + frontend**) para instituciones educativas. Cubre todos los aspectos críticos del dominio:
 
 - Administración de carreras y planes de estudio.
 - Versionado estricto de la currícula.

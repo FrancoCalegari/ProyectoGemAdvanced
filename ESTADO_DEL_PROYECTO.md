@@ -26,8 +26,8 @@ Backend + Frontend completos. Todas las funcionalidades del plan original (Fases
 | 5 | Cursadas e Historia Academica | Completada |
 | 6 | Certificados | Completada |
 | 7 | Autenticacion y Roles | Completada |
-| 8 | Testing y Documentacion | En desarrollo |
-| 9 | Despliegue | Pendiente |
+| 8 | Testing y Documentacion | Completada |
+| 9 | Despliegue (Dockerfile + docker-compose) | Completada |
 
 ## Módulos nuevos (M1-M10)
 

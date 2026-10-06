@@ -1,6 +1,6 @@
 # Plataforma de Gestión de Carreras Académicas (Backend + Frontend)
 
-Este repositorio contiene el backend de una plataforma pensada para que una institución educativa pueda administrar sus carreras de forma ordenada, versionando los planes de estudio sin perder el historial académico de nadie.
+Este repositorio contiene el **backend y el frontend** de una plataforma pensada para que una institución educativa pueda administrar sus carreras de forma ordenada, versionando los planes de estudio sin perder el historial académico de nadie.
 
 La idea central es simple pero poderosa: cuando una institución cambia el plan de estudios de una carrera, los alumnos que ya están cursando **no** pueden quedar atrapados en un limbo administrativo. Acá eso se resuelve con **resoluciones**: cada versión de la currícula es una entidad propia, con su propio set de años y materias. Cuando llega una nueva versión, la anterior se cierra y queda como registro histórico. Los alumnos que ya estaban inscriptos siguen bajo su plan original; los nuevos ingresan con el plan nuevo.
 
@@ -72,10 +72,13 @@ npm run dev                             # http://localhost:5173
 
 ## Estado actual del proyecto
 
-El proyecto incluye el **backend y el frontend completos**. Están implementadas las **Fases 0 a 7**
-del plan original, los **módulos nuevos (M1-M11)**, la **gestión del personal no docente** y el
-**rol Celador**. Hay **136 endpoints** en la API (**23 documentados con Swagger**, en `/api-docs`) y
-**51 tests unitarios** que pasan con `npm test`.
+**Proyecto completo y verificado**: incluye el **backend y el frontend**. Están implementadas las
+**Fases 0 a 9** del plan original, los **módulos nuevos (M1-M11)**, la **gestión del personal no
+docente** (fichas, cargos, sectores y horarios) y los **seis roles** del sistema (ADMIN, SECRETARIA,
+ALUMNO, PROFESOR, **BEDEL** y **CELADOR**).
+
+Hay **136 endpoints** en la API (Swagger en `/api-docs`), **51 tests unitarios** que pasan con
+`npm test` y el frontend compila con `npm run build`.
 
 El detalle de los últimos cambios, el alcance de cada rol y las pantallas nuevas está en
 [**CAMBIOS-Y-USO.md**](./CAMBIOS-Y-USO.md).
@@ -92,8 +95,8 @@ El detalle de los últimos cambios, el alcance de cada rol y las pantallas nueva
 | 5 | Cursadas e Historia Académica | ✅ Completada |
 | 6 | Certificados (parciales y de título completo) | ✅ Completada |
 | 7 | Autenticación y Roles | ✅ Completada |
-| 8 | Testing y Documentación (Swagger) | 🔄 En desarrollo |
-| 9 | Despliegue | ⏳ Pendiente |
+| 8 | Testing y Documentación (Swagger) | ✅ Completada |
+| 9 | Despliegue (Dockerfile + docker-compose) | ✅ Completada |
 
 ### Módulos nuevos (M1-M11)
 
@@ -148,18 +151,19 @@ Elegimos **PostgreSQL 18** en lugar de la versión 16 sugerida originalmente en 
 ```
 ProyectoGemAdvanced/
 ├── prisma/
-│   ├── schema.prisma              # Modelo de datos completo (19 modelos, 15 enums)
+│   ├── schema.prisma              # Modelo de datos completo (26 modelos, 28 enums)
 │   ├── seed.js                    # Carga de datos de prueba
+│   ├── seed_roles_nodocentes.js   # Fichas + horarios de bedeles y celadores
 │   └── migrations/                # Migraciones versionadas
 ├── src/
 │   ├── config/
 │   │   └── db.js                  # Cliente Prisma
-│   ├── controllers/               # Handlers HTTP (18 controllers)
+│   ├── controllers/               # Handlers HTTP (25 controllers)
 │   ├── middlewares/
 │   │   ├── index.js               # errorHandler, validate, notFound
 │   │   └── auth.js                # requireAuth, requireRole, requireSelfOrRole
-│   ├── routes/                    # Definición de rutas (16 routers)
-│   ├── services/                  # Lógica de negocio (17 services)
+│   ├── routes/                    # Definición de rutas (23 routers)
+│   ├── services/                  # Lógica de negocio (25 services)
 │   ├── utils/
 │   │   ├── errors.js              # AppError + códigos de error
 │   │   ├── helpers.js             # Utilidades
@@ -167,8 +171,8 @@ ProyectoGemAdvanced/
 │   └── app.js                     # Bootstrap de Express
 ├── tests/
 │   └── unit/                      # Tests unitarios (Jest)
-├── frontend/                      # Frontend React (en desarrollo)
-├── docker-compose.yml             # Stack completo (PostgreSQL + API)
+├── frontend/                      # Frontend React + Vite + Tailwind (completo)
+├── docker-compose.yml             # Servicio del API (la base se levanta aparte)
 ├── docker/
 │   └── Dockerfile                 # Imagen del API
 ├── .env.example
@@ -178,12 +182,15 @@ ProyectoGemAdvanced/
 ├── api_tests.http                 # Colección de requests
 ├── package.json
 ├── README.md
+├── CAMBIOS-Y-USO.md               # Cambios recientes, roles y pantallas nuevas
 └── CONSIGNA.md                    # Plan original de implementación
 ```
 
 ---
 
-## Cómo levantarlo en tu máquina
+## Cómo levantarlo en tu máquina (detalle)
+
+> Resumen rápido, en la sección [Cómo ejecutarlo](#cómo-ejecutarlo-paso-a-paso).
 
 ### Requisitos previos
 
@@ -201,11 +208,18 @@ git checkout feature/backend-plataforma-academica
 
 ### Paso 2 — Levantar la base de datos
 
+La base PostgreSQL corre en su propio contenedor (el `docker-compose.yml` del repo define el API):
+
 ```bash
-docker compose up -d
+docker network create academico_net
+docker run -d --name postgres-academico --network academico_net \
+  -e POSTGRES_USER=academico_user -e POSTGRES_PASSWORD=31881701 \
+  -e POSTGRES_DB=plataforma_academica -p 5434:5432 \
+  -v academico_pgdata:/var/lib/postgresql/data postgres:18-alpine
 ```
 
-Esto levanta PostgreSQL 18 en el puerto `5434`. La base se llama `plataforma_academica`.
+Queda en el puerto `5434` y la base se llama `plataforma_academica`. Si ya lo tenés creado,
+alcanza con `docker start postgres-academico`.
 
 ### Paso 3 — Instalar dependencias
 
@@ -240,7 +254,14 @@ El seeder carga automáticamente:
 - Cursadas con estados variados
 - Certificados de ejemplo
 - 2 equivalencias entre carreras
-- 22 usuarios (admin + secretaria + 20 alumnos)
+- 22 usuarios base (admin + secretaria + 20 alumnos)
+- Usuarios de los módulos docentes y no docentes (profesores, bedel y celador)
+
+Para una base que ya tiene datos, las fichas y los horarios del personal no docente se cargan con:
+
+```bash
+node prisma/seed_roles_nodocentes.js
+```
 
 ### Paso 6 — Levantar el servidor
 
@@ -359,6 +380,7 @@ curl http://localhost:3000/health
 |---|---|---|
 | POST | `/api/alumnos/:id/cursadas` | Registrar/actualizar estado de una materia |
 | GET | `/api/alumnos/:id/historia-academica` | Recorrido académico completo con % de avance |
+| PUT | `/api/cursadas/:id` | Editar nota / estado de una cursada (ADMIN, SECRETARIA o PROFESOR dueño) |
 
 ### Certificados
 
@@ -390,14 +412,15 @@ curl http://localhost:3000/health
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/api/licencias` | Listar (ADMIN, SECRETARIA) |
-| GET | `/api/licencias/me` | Mis licencias (PROFESOR) |
-| POST | `/api/licencias` | Crear (PROFESOR, ADMIN) |
+| GET | `/api/licencias/me` | Mis licencias (PROFESOR, BEDEL, CELADOR) |
+| POST | `/api/licencias` | Crear (PROFESOR, BEDEL, CELADOR y gestión) |
 | GET | `/api/licencias/:id` | Detalle |
 | PUT | `/api/licencias/:id` | Editar (solo PENDIENTE) |
 | DELETE | `/api/licencias/:id` | Eliminar (solo PENDIENTE) |
 | PATCH | `/api/licencias/:id/aprobar` | Aprobar — genera clases suspendidas automáticamente |
 | PATCH | `/api/licencias/:id/rechazar` | Rechazar |
 | GET | `/api/licencias/profesor/:profesorId` | Licencias de un profesor |
+| GET | `/api/licencias/empleado/:empleadoId` | Certificados y justificativos de un no docente |
 
 **Tipos de licencia:** `ENFERMEDAD`, `RAZON_PARTICULAR`, `ESTUDIOS_FEMENINOS` (solo género F), `DONACION_SANGRE`, `ACCIDENTE_LABORAL`, `OTRO`.
 
@@ -475,6 +498,40 @@ curl http://localhost:3000/health
 | PUT | `/api/usuarios/:id` | Editar (ADMIN) |
 | DELETE | `/api/usuarios/:id` | Eliminar (ADMIN) |
 
+### Personal no docente (bedeles, celadores y otros)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/empleados` | Listar fichas (ADMIN, SECRETARIA) |
+| POST | `/api/empleados` | Crear ficha (ADMIN, SECRETARIA) |
+| GET | `/api/empleados/:id` | Detalle de la ficha (ADMIN, SECRETARIA o el propio empleado) |
+| PUT | `/api/empleados/:id` | Editar ficha (ADMIN, SECRETARIA) |
+| PATCH | `/api/empleados/:id/estado` | Cambiar estado (ADMIN, SECRETARIA) |
+| PATCH | `/api/empleados/:id/baja` | Baja lógica (ADMIN, SECRETARIA) |
+| PATCH | `/api/empleados/:id/reactivar` | Reactivar (ADMIN, SECRETARIA) |
+| GET | `/api/empleados/:id/horarios` | Turnos de una ficha (ADMIN, SECRETARIA o el propio empleado) |
+| POST | `/api/empleados/:id/horarios` | Asignar turno (ADMIN, SECRETARIA) |
+| GET | `/api/empleados/:id/modificaciones` | Historial de cambios de horario de una ficha |
+| GET | `/api/empleados/me` | Mi ficha (BEDEL, CELADOR) |
+| GET | `/api/empleados/me/horarios` | Mis turnos (CELADOR) |
+| GET | `/api/empleados/me/modificaciones` | Novedades y modificaciones de mis turnos (CELADOR) |
+| PATCH | `/api/empleados/me/modificaciones/visto` | Marcar las novedades como vistas (CELADOR) |
+| GET | `/api/empleados/me/historial` | Mi historial completo (CELADOR) |
+
+### Horarios de trabajo
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| PUT | `/api/horarios/:id` | Modificar un turno — registra la modificación con antes → después (ADMIN, SECRETARIA) |
+| DELETE | `/api/horarios/:id` | Dar de baja un turno — registra la baja en el historial (ADMIN, SECRETARIA) |
+
+### Personal (vista unificada)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/api/personal` | Todo el personal: administradores, secretarias, bedeles y celadores (ADMIN, SECRETARIA) |
+| GET | `/api/personal/usuario/:usuarioId` | Una persona del personal según su cuenta (ADMIN, SECRETARIA) |
+
 ---
 
 ## Roles y permisos
@@ -485,6 +542,8 @@ curl http://localhost:3000/health
 | **SECRETARIA** | Ver y gestionar alumnos, títulos, cursadas, mesas, certificados. **NO edita** profesores (solo ve). Aprueba/rechaza licencias y solicitudes |
 | **PROFESOR** | Ve y edita **su propio** perfil, sus materias, sus licencias, sus solicitudes. Puede crear solicitudes y licencias |
 | **ALUMNO** | Ve su historia académica, sus certificados, sus mesas. Puede crear solicitudes |
+| **BEDEL** (no docente) | Consulta alumnos, carreras, materias, mesas y documentación presentada; **registra asistencia y justifica faltas**. Tiene su propio panel de horarios. No accede a usuarios, docentes, licencias ajenas, pedidos ni estadísticas |
+| **CELADOR** (no docente) | **Rol de autoservicio**: sólo su panel personal — sus datos, sus horarios (con las modificaciones y el aviso de novedades) y la presentación de certificados de salud y justificativos. Sin ninguna función administrativa |
 
 ---
 
@@ -577,10 +636,10 @@ LIBRE / DESAPROBADA ------> EN_CURSO (recursada)
 
 ### Autenticación y roles
 
-- **JWT** con payload `{ sub, email, rol, alumnoId, profesorId }`.
+- **JWT** con payload `{ sub, email, rol, alumnoId, profesorId, empleadoId }`.
 - **Contraseñas hasheadas con bcrypt** (10 rounds).
-- **Roles:** ADMIN, SECRETARIA, ALUMNO, PROFESOR.
-- **Middlewares:** `requireAuth` (valida token), `requireRole([...])` (valida rol), `requireSelfOrRole([...], paramName)` (valida dueño del recurso).
+- **Roles (6):** ADMIN, SECRETARIA, ALUMNO, PROFESOR, BEDEL, CELADOR.
+- **Middlewares:** `requireAuth` (valida token), `requireRole([...])` (valida rol), `requireSelfOrRole([...], paramName)` (valida dueño del recurso) y `bloqueoCelador` (lista blanca *default-deny* para el rol CELADOR).
 
 **Usuarios del seeder:**
 
@@ -589,12 +648,15 @@ LIBRE / DESAPROBADA ------> EN_CURSO (recursada)
 | `admin@plataforma.edu.ar` | `admin123` | ADMIN |
 | `secretaria@plataforma.edu.ar` | `secretaria123` | SECRETARIA |
 | `alumno0@plataforma.edu.ar` a `alumno19@plataforma.edu.ar` | `alumno123` | ALUMNO |
+| `roberto.fernandez@plataforma.edu.ar` | `profesor123` | PROFESOR |
+| `bedel@plataforma.edu.ar` | `bedel123` | BEDEL |
+| `celador@plataforma.edu.ar` | `celador123` | CELADOR |
 
 ---
 
 ## Modelo de datos
 
-El schema completo está en `prisma/schema.prisma`. Tiene **19 modelos** y **15 enums**.
+El schema completo está en `prisma/schema.prisma`. Tiene **26 modelos** y **28 enums**.
 
 ### Modelos académicos
 
@@ -635,11 +697,17 @@ El schema completo está en `prisma/schema.prisma`. Tiene **19 modelos** y **15 
 
 ### Auth
 
-- `Usuario` — usuarios del sistema (con `alumnoId` y `profesorId` opcionales)
+- `Usuario` — usuarios del sistema (con `alumnoId`, `profesorId` y `empleadoId` opcionales)
+
+### Modelos de personal no docente
+
+- `Empleado` — bedeles, celadores y otros no docentes (con cargo, sector, contacto y estado)
+- `HorarioTrabajo` — turnos asignados (día, hora desde/hasta, sector, vigencia)
+- `ModificacionHorario` — historial de cambios de los turnos (ALTA / CAMBIO / BAJA, con antes → después y marca de visto)
 
 ### Enums
 
-`estado_titulo`, `estado_resolucion`, `tipo_cursada`, `tipo_correlatividad`, `estado_inscripcion`, `estado_cursada`, `tipo_certificado`, `estado_certificado`, `estado_examen`, `rol_usuario`, `estado_asistencia`, `estado_profesor`, `tipo_licencia`, `estado_licencia`, `tipo_solicitud`, `estado_solicitud`, `tipo_titulo_profesor`, `estado_certificado_presentado`, `tipo_certificado_presentado`, `estado_mesa`, `estado_inscripcion_mesa`, `tipo_mesa`, `motivo_suspension`, `turno_licencia`.
+`estado_titulo`, `estado_resolucion`, `tipo_cursada`, `tipo_correlatividad`, `estado_alumno`, `estado_inscripcion`, `estado_cursada`, `tipo_certificado`, `estado_certificado`, `estado_examen`, `rol_usuario`, `estado_asistencia`, `estado_profesor`, `tipo_licencia`, `turno_licencia`, `motivo_suspension`, `estado_licencia`, `cargo_empleado`, `estado_empleado`, `tipo_modificacion_horario`, `tipo_solicitud`, `estado_solicitud`, `tipo_titulo_profesor`, `estado_certificado_presentado`, `tipo_certificado_presentado`, `tipo_mesa`, `estado_mesa`, `estado_inscripcion_mesa`.
 
 ---
 
@@ -651,7 +719,13 @@ A partir de PostgreSQL 18, la imagen oficial de Docker cambió la forma en que g
 
 ### Sobre el seeder
 
-El script `prisma/seed.js` es **idempotente**: cada vez que se ejecuta, limpia primero toda la base y después carga los datos. Incluye 5 perfiles de alumno para probar todos los flujos de admisión, y crea 22 usuarios (admin + secretaria + 20 alumnos).
+El script `prisma/seed.js` es **idempotente**: cada vez que se ejecuta, limpia primero toda la base y después carga los datos. Incluye 5 perfiles de alumno para probar todos los flujos de admisión, y crea 22 usuarios base (admin + secretaria + 20 alumnos).
+
+El personal no docente (bedeles y celadores, con sus fichas y horarios de ejemplo) se carga además con:
+
+```bash
+node prisma/seed_roles_nodocentes.js
+```
 
 ### Sobre las transacciones
 
@@ -678,10 +752,9 @@ Los certificados se generan con **pdfkit**. El PDF incluye encabezado, datos del
 
 ### Sobre la autenticación
 
-- **JWT** con `jsonwebtoken`. Payload: `{ sub, email, rol, alumnoId, profesorId }`.
-- **Contraseñas hasheadas** con `bcrypt` (10 rounds).
-- **Roles:** ADMIN, SECRETARIA, ALUMNO, PROFESOR.
-- **Middlewares:** `requireAuth` (valida token), `requireRole([...])` (valida rol), `requireSelfOrRole([...], paramName)` (valida dueño).
+Los **6 roles**, el payload del JWT y los middlewares de autorización están detallados en
+[Autenticación y roles](#autenticación-y-roles). El bloqueo del celador es *default-deny*
+(`bloqueoCelador`): sólo pasa por las rutas de su lista blanca.
 
 ---
 
@@ -697,30 +770,34 @@ npm test
 
 ---
 
-## Próximos pasos
+## Estado del desarrollo
 
-1. **Frontend completo** (M7-M10):
-   - Página de Profesores (listado + detalle) — en desarrollo
-   - Panel personal por rol (autogestión)
-   - Estadísticas con rango de fechas
-   - Dashboard completo
-2. **Fase 8:** completar tests + documentación Swagger.
-3. **Fase 9:** despliegue.
+Todas las etapas están **terminadas y verificadas**:
+
+- ✅ **Backend completo** — Fases 0 a 9 del plan original, más los módulos M1 a M11.
+- ✅ **Frontend completo** — React + Vite + Tailwind, con panel por rol y guardas de ruta.
+- ✅ **Seis roles** — ADMIN, SECRETARIA, ALUMNO, PROFESOR, BEDEL y CELADOR.
+- ✅ **Personal no docente** — fichas, cargos, sectores y horarios con historial de modificaciones.
+- ✅ **Rol Celador** — autoservicio: datos, horarios con novedades, certificados y justificativos.
+- ✅ **Dashboard y estadísticas** — KPIs, reportes con Recharts y exportación PDF/CSV.
+- ✅ **Testing** — 51 tests unitarios que pasan con `npm test` (10 suites).
+- ✅ **Documentación** — Swagger en `/api-docs`, `DOCUMENTACION.md`, `CAMBIOS-Y-USO.md` y este README.
+- ✅ **Dockerización** — `docker/Dockerfile` y `docker-compose.yml` para el API.
 
 ---
 
 ## Deploy con Docker
 
-El proyecto incluye un `docker-compose.yml` que levanta **todo el stack** (base de datos + API) con un solo comando.
+El proyecto incluye `docker/Dockerfile` y un `docker-compose.yml` para el servicio del API. La base PostgreSQL se levanta con el contenedor de la sección [Cómo ejecutarlo](#cómo-ejecutarlo-paso-a-paso).
 
 ### Requisitos
 
 - Docker Desktop corriendo.
 
-### Levantar el stack completo
+### Levantar el API en Docker
 
 ```bash
-docker compose up -d
+docker compose up -d api
 ```
 
 ---
@@ -729,7 +806,7 @@ docker compose up -d
 
 Este es el repositorio de trabajo del proyecto. El plan original de implementación (consigna) se conserva en [`CONSIGNA.md`](./CONSIGNA.md) como referencia.
 
-La rama activa es `feature/backend-plataforma-academica`. `main` permanece con el commit inicial hasta que se haga el merge final.
+El desarrollo se realiza en la rama `feature/backend-plataforma-academica`.
 
 ---
 

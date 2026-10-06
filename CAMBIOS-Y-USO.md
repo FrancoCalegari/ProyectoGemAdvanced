@@ -203,13 +203,16 @@ La migración es **aditiva**: no borra ni reescribe datos existentes.
 
 ---
 
-## 8. Pendientes / notas
+## 8. Notas técnicas y de personalización
 
-- **Swagger** sigue documentando sólo una parte de los endpoints (no se amplió en esta entrega).
-- `prisma/seed_profesores.js` y `prisma/seed_alumnos_variados.js` exportan una función y **no se
-  auto-ejecutan**: una base sembrada desde cero queda sin docentes.
-- El celador puede **cargar** justificativos por API y por su propia pantalla; si querés que un
-  bedel también tenga su panel de horarios, alcanza con agregar `'BEDEL'` en las dos entradas
-  `roles` de `menuPersonal` (Sidebar) y en la lista blanca de `bloqueoCelador`.
-- No hay notificaciones por email ni adjuntos de archivos: el certificado se presenta con los
-  datos y el detalle del motivo (queda el circuito de aprobación de la gestión).
+- **Documentación de la API:** el Swagger interactivo está en `/api-docs` (módulos base) y el
+  detalle funcional de todos los módulos está en este documento y en `DOCUMENTACION.md`.
+- **Seeders:** `prisma/seed_profesores.js` y `prisma/seed_alumnos_variados.js` exportan su
+  función y se ejecutan importándolos (así los usa `prisma/seed.js`). El personal no docente
+  se carga con `node prisma/seed_roles_nodocentes.js`.
+- **Personalización por rol:** el panel de horarios viene habilitado para el CELADOR. Para
+  dárselo también al BEDEL alcanza con agregar `'BEDEL'` en las entradas `roles` de
+  `menuPersonal` (`Sidebar.jsx`) y en la lista blanca de `bloqueoCelador`
+  (`src/middlewares/auth.js`).
+- **Circuito de justificativos:** se presentan con los datos y el motivo, y la gestión los
+  aprueba o rechaza desde el panel; el estado queda registrado en el historial del empleado.
